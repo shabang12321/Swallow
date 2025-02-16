@@ -41,7 +41,7 @@ const Home = () => {
 
           {/* Features Section */}
           <div className="mt-12 sm:mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 px-4">
-            <div className="card p-6">
+            <div className="card p-6 flex flex-col items-center text-center">
               <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -51,7 +51,7 @@ const Home = () => {
               <h3 className="text-xl font-semibold mb-2">Personalized Advice</h3>
               <p className="text-gray-600">Get tailored supplement recommendations based on your unique health profile.</p>
             </div>
-            <div className="card p-6">
+            <div className="card p-6 flex flex-col items-center text-center">
               <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -61,7 +61,7 @@ const Home = () => {
               <h3 className="text-xl font-semibold mb-2">Quick Results</h3>
               <p className="text-gray-600">Instant AI-powered analysis and recommendations for your health goals.</p>
             </div>
-            <div className="card p-6">
+            <div className="card p-6 flex flex-col items-center text-center">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 

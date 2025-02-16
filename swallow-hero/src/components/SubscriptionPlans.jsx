@@ -110,7 +110,7 @@ const SubscriptionPlans = () => {
         ))}
       </div>
       <div className="text-center text-gray-500 text-sm mt-8">
-        All plans include a 30-day money-back guarantee
+        All plans include a 7-day money-back guarantee
       </div>
     </div>
   );
