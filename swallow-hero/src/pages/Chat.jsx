@@ -30,7 +30,7 @@ const Chat = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-md">
-            <h3 className="text-lg font-semibold mb-3 text-purple-600">Tips for Better Results</h3>
+            <h3 className="text-lg font-semibold mb-3 text-blue-600">Tips for Better Results</h3>
             <ul className="space-y-2 text-gray-600">
               <li>• Be specific about your health goals</li>
               <li>• Mention any existing conditions or medications</li>
@@ -39,7 +39,7 @@ const Chat = () => {
             </ul>
           </div>
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-md">
-            <h3 className="text-lg font-semibold mb-3 text-purple-600">Important Note</h3>
+            <h3 className="text-lg font-semibold mb-3 text-blue-600">Important Note</h3>
             <p className="text-gray-600">
               Our AI provides general recommendations based on available information. 
               Always consult with a healthcare professional before starting any new supplement regimen.
