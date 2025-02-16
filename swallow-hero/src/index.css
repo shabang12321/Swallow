@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  @apply bg-gradient-to-br from-sky-50 to-emerald-50;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.hero-gradient {
+  @apply text-transparent;
+  background: linear-gradient(135deg, 
+    rgb(14, 165, 233) 0%,    /* sky-500 */
+    rgb(20, 184, 166) 50%,   /* teal-500 */
+    rgb(34, 197, 94) 100%    /* green-500 */
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: rgb(14, 165, 233); /* Fallback color */
+  display: inline-block;
+}
+
+.btn-primary {
+  @apply px-6 py-3 bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-lg 
+         hover:from-sky-600 hover:to-teal-600 transition-all duration-200 
+         shadow-md hover:shadow-lg transform hover:-translate-y-0.5;
+}
+
+.card {
+  @apply bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 
+         border border-gray-100 overflow-hidden;
+}
+
+.input-field {
+  @apply w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-sky-500 
+         focus:border-transparent transition-all duration-200 bg-white/90;
+}
+
+.nav-link {
+  @apply px-4 py-2 text-gray-600 hover:text-sky-600 transition-colors duration-200 
+         rounded-lg hover:bg-sky-50;
+}
+
+/* Secondary button style */
+.btn-secondary {
+  @apply px-6 py-3 text-gray-700 rounded-lg border border-gray-300 
+         hover:border-sky-500 hover:text-sky-600 hover:bg-sky-50 transition-all duration-200;
+}
