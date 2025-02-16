@@ -44,13 +44,13 @@ const plans = [
 const SubscriptionPlans = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-16">
-        <h2 className="text-4xl font-bold hero-gradient mb-4">Choose Your Plan</h2>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+      <div className="text-center mb-8 sm:mb-16">
+        <h2 className="text-3xl sm:text-4xl font-bold hero-gradient mb-4">Choose Your Plan</h2>
+        <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
           Get personalized vitamin recommendations and regular deliveries tailored to your needs
         </p>
       </div>
-      <div className="grid md:grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
         {plans.map((plan) => (
           <div 
             key={plan.name} 
@@ -66,20 +66,20 @@ const SubscriptionPlans = () => {
                 </div>
               </div>
             )}
-            <div className={`p-8 ${plan.highlight ? 'pt-12' : ''}`}>
+            <div className={`p-6 sm:p-8 ${plan.highlight ? 'pt-12' : ''}`}>
               <div className="flex flex-col items-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                 <div className="flex items-baseline mb-6">
-                  <span className="text-5xl font-bold text-sky-600">{plan.price}</span>
-                  <span className="text-gray-500 ml-2 text-lg">/{plan.period}</span>
+                  <span className="text-4xl sm:text-5xl font-bold text-sky-600">{plan.price}</span>
+                  <span className="text-gray-500 ml-2 text-base sm:text-lg">/{plan.period}</span>
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-xl p-6 mb-6">
-                <ul className="space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4 sm:p-6 mb-6">
+                <ul className="space-y-3 sm:space-y-4">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start">
                       <svg 
-                        className="h-6 w-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" 
+                        className="h-5 w-5 sm:h-6 sm:w-6 text-green-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" 
                         fill="none" 
                         stroke="currentColor" 
                         viewBox="0 0 24 24"
@@ -91,13 +91,13 @@ const SubscriptionPlans = () => {
                           d="M5 13l4 4L19 7"
                         />
                       </svg>
-                      <span className="text-gray-600">{feature}</span>
+                      <span className="text-sm sm:text-base text-gray-600">{feature}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <button 
-                className={`w-full py-4 px-6 rounded-xl text-lg font-semibold transition-all duration-200 
+                className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-xl text-base sm:text-lg font-semibold transition-all duration-200 
                   ${plan.highlight
                     ? 'bg-gradient-to-r from-sky-500 to-teal-500 text-white hover:from-sky-600 hover:to-teal-600 shadow-lg hover:shadow-xl'
                     : 'bg-white border-2 border-sky-500 text-sky-600 hover:bg-sky-50'
