@@ -14,7 +14,7 @@ const Chat = () => {
             AI Supplement Advisor
           </h1>
           <p className="text-lg text-gray-600">
-            Chat with our AI to get personalized supplement recommendations and advice
+            Chat with our AI to get personalised supplement recommendations and advice
           </p>
         </div>
       </div>
