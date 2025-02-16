@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navigation from '../components/Navigation';
 import SubscriptionPlans from '../components/SubscriptionPlans';
 
 const Home = () => {
@@ -8,8 +7,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      <Navigation />
-      
       {/* Hero Section */}
       <div className="py-8 sm:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">

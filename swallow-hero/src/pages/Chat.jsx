@@ -1,12 +1,9 @@
 import React from 'react';
-import Navigation from '../components/Navigation';
 import ChatInterface from '../components/ChatInterface';
 
 const Chat = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <Navigation />
-      
       {/* Chat Header */}
       <div className="py-8 px-4 sm:px-6 lg:px-8 bg-white/50 backdrop-blur-md">
         <div className="max-w-4xl mx-auto text-center">
