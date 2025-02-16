@@ -28,7 +28,7 @@ const Home = () => {
               <button 
                 onClick={() => navigate('/about')}
                 className="px-6 py-3 text-gray-700 rounded-lg border border-gray-300 
-                          hover:border-green-500 hover:text-green-600 transition-all duration-200
+                          hover:border-blue-500 hover:text-green-600 transition-all duration-200
                           w-full sm:w-auto"
               >
                 Learn More
