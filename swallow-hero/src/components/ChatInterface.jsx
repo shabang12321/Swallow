@@ -27,14 +27,14 @@ const QUESTIONNAIRE_STEPS = [
         name: 'activityLevel', 
         label: 'Activity Level', 
         type: 'select',
-        options: ['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active', 'Athlete'],
+        options: ['Limited', 'Light', 'Moderate', 'Heavy', 'Athlete'],
         required: true 
       },
       { 
         name: 'dietType', 
         label: 'Diet Type', 
         type: 'select',
-        options: ['Omnivore', 'Vegetarian', 'Vegan', 'Pescatarian', 'Keto', 'Other'],
+        options: ['Balanced', 'Inconsistent','Vegan/Vegetarian', 'Pescatarian', 'Keto', 'Other'],
         required: true 
       },
       { 
@@ -110,8 +110,8 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
         if (field.name === 'age' && (num < 18 || num > 120)) {
           newErrors[field.name] = 'Please enter a valid age between 18 and 120';
         }
-        if (field.name === 'height' && (num < 100 || num > 250)) {
-          newErrors[field.name] = 'Please enter a valid height between 100cm and 250cm';
+        if (field.name === 'height' && (num < 50 || num > 300)) {
+          newErrors[field.name] = 'Please enter a valid height between 50cm and 300cm';
         }
         if (field.name === 'weight' && (num < 30 || num > 300)) {
           newErrors[field.name] = 'Please enter a valid weight between 30kg and 300kg';
@@ -318,18 +318,7 @@ const ChatInterface = () => {
     content: `You are Swallow Hero, a professional vitamin and supplement advisor with expertise in nutrition and supplementation. Your purpose is to provide personalized vitamin and supplement recommendations based on individual health profiles.
 
     CORE RESPONSIBILITIES:
-    1. Information Gathering - Systematically collect user information in a conversational manner:
-       - Age and Sex (essential for dosage recommendations)
-       - Height and Weight (for BMI calculations)
-       - Activity Level (sedentary, moderate, active, athlete)
-       - Diet Type (omnivore, vegetarian, vegan, etc.)
-       - Dietary Restrictions or Allergies
-       - Current Health Concerns
-       - Existing Medical Conditions
-       - Current Medications (to avoid interactions)
-       - Sleep Patterns
-       - Stress Levels
-       - Current Supplement Usage
+    1. Information Processing - Process the user's health profile based on their initial submission
 
     CONVERSATION GUIDELINES:
     1. Start by introducing yourself and asking about their primary health goals
@@ -501,29 +490,30 @@ const ChatInterface = () => {
   const handleQuestionnaireComplete = async () => {
     // Format collected data for the AI in a more readable way
     const userProfile = [
-      "Here's my health profile:",
+      "MY HEALTH PROFILE",
+      "----------------------------------------",
       "",
-      "Basic Information:",
-      `• Age: ${formData.age}`,
-      `• Sex: ${formData.sex}`,
-      `• Height: ${formData.height}cm`,
-      `• Weight: ${formData.weight}kg`,
+      "BASIC INFORMATION",
+      `Age: ${formData.age}`,
+      `Sex: ${formData.sex}`,
+      `Height: ${formData.height}cm`,
+      `Weight: ${formData.weight}kg`,
       "",
-      "Lifestyle & Diet:",
-      `• Activity Level: ${formData.activityLevel}`,
-      `• Diet Type: ${formData.dietType}`,
-      `• Dietary Restrictions: ${formData.dietaryRestrictions?.join(', ') || 'None'}`,
+      "LIFESTYLE & DIET",
+      `Activity Level: ${formData.activityLevel}`,
+      `Diet Type: ${formData.dietType}`,
+      `Dietary Restrictions: ${formData.dietaryRestrictions?.join(', ') || 'None'}`,
       "",
-      "Health Information:",
-      `• Health Concerns: ${formData.healthConcerns?.join(', ')}`,
-      `• Medical Conditions: ${formData.medicalConditions || 'None reported'}`,
-      `• Current Medications: ${formData.medications || 'None reported'}`,
+      "HEALTH INFORMATION",
+      `Health Concerns: ${formData.healthConcerns?.join(', ')}`,
+      `Medical Conditions: ${formData.medicalConditions || 'None reported'}`,
+      `Current Medications: ${formData.medications || 'None reported'}`,
       "",
-      "Supplement Information:",
-      `• Current Supplements: ${formData.currentSupplements || 'None reported'}`,
-      `• Supplement Goals: ${formData.supplementGoals?.join(', ')}`,
+      "SUPPLEMENT INFORMATION",
+      `Current Supplements: ${formData.currentSupplements || 'None reported'}`,
+      `Supplement Goals: ${formData.supplementGoals?.join(', ')}`,
       "",
-      "Based on this information, could you provide personalized supplement recommendations for me?"
+      "Please provide personalized supplement recommendations based on my profile."
     ].join('\n');
 
     // Add initial message with user profile
@@ -533,14 +523,45 @@ const ChatInterface = () => {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages([initialMessage]);
+    // Add welcome message from AI
+    const welcomeMessage = {
+      text: "👋 Hello! I'm analyzing your health profile to create personalized supplement recommendations for you. One moment please...",
+      sender: 'ai',
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages([initialMessage, welcomeMessage]);
     setShowQuestionnaire(false);
     setIsTyping(true);
+
+    // Update system message to ensure cleaner responses
+    const updatedSystemMessage = {
+      role: "system",
+      content: `You are Swallow Hero, a professional vitamin and supplement advisor. Provide clear, concise supplement recommendations.
+
+RESPONSE FORMAT:
+1. Keep responses organized and easy to read
+2. Don't use markdown characters (no * or #)
+3. Use clear sections with CAPS for headers
+4. For supplement recommendations, use this format:
+
+RECOMMENDED SUPPLEMENTS:
+
+[Supplement Name]
+- Purpose: [Brief purpose]
+- Dosage: [Clear dosage]
+
+IMPORTANT NOTES:
+- Always include brief safety disclaimer at the end
+- Avoid unnecessary introductions or filler text
+- Focus on clear, actionable recommendations
+- Use simple formatting without special characters`
+    };
 
     try {
       // Prepare conversation history with the questionnaire data
       const conversationHistory = [
-        systemMessage,
+        updatedSystemMessage,
         { role: 'user', content: userProfile }
       ];
 
