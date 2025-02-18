@@ -525,7 +525,7 @@ const ChatInterface = () => {
 
     // Add welcome message from AI
     const welcomeMessage = {
-      text: "👋 Hello! I'm analyzing your health profile to create personalized supplement recommendations for you. One moment please...",
+      text: "👋 Hello! I'm analysing your health profile to create personalized supplement recommendations for you. One moment please...",
       sender: 'ai',
       timestamp: new Date().toISOString(),
     };
