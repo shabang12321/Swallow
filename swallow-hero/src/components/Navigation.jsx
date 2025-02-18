@@ -6,12 +6,16 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isActive = (path) => location.pathname === path;
 
+  const handleLinkClick = () => {
+    setIsMenuOpen(false);
+  };
+
   return (
     <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2" onClick={handleLinkClick}>
               <img src="/logo.png" alt="Swallow Hero Logo" className="w-8 h-8" />
               <span className="text-xl font-bold hero-gradient">Swallow Hero</span>
             </Link>
@@ -65,6 +69,7 @@ const Navigation = () => {
             className={`block px-3 py-2 rounded-md text-base font-medium ${
               isActive('/') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
             }`}
+            onClick={handleLinkClick}
           >
             Home
           </Link>
@@ -73,6 +78,7 @@ const Navigation = () => {
             className={`block px-3 py-2 rounded-md text-base font-medium ${
               isActive('/chat') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
             }`}
+            onClick={handleLinkClick}
           >
             AI Chat
           </Link>
@@ -81,6 +87,7 @@ const Navigation = () => {
             className={`block px-3 py-2 rounded-md text-base font-medium ${
               isActive('/plans') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
             }`}
+            onClick={handleLinkClick}
           >
             Plans
           </Link>
@@ -89,12 +96,14 @@ const Navigation = () => {
             className={`block px-3 py-2 rounded-md text-base font-medium ${
               isActive('/about') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
             }`}
+            onClick={handleLinkClick}
           >
             About
           </Link>
           <Link 
             to="/chat" 
             className="block w-full text-center px-3 py-2 rounded-md text-base font-medium btn-primary mt-4"
+            onClick={handleLinkClick}
           >
             Get Started
           </Link>
