@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Chat from './pages/Chat';
 import Plans from './pages/Plans';
 import About from './pages/About';
+import FAQPage from './pages/FAQPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/chat" element={<Chat />} />
             <Route path="/plans" element={<Plans />} />
             <Route path="/about" element={<About />} />
+            <Route path="/faq" element={<FAQPage />} />
           </Routes>
         </main>
       </div>

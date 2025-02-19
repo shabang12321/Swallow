@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import OpenAI from 'openai';
+import { useNavigate, Link } from 'react-router-dom';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -13,10 +14,48 @@ const QUESTIONNAIRE_STEPS = [
     id: 'basics',
     title: 'Basic Information',
     fields: [
-      { name: 'age', label: 'Age', type: 'number', required: true },
-      { name: 'sex', label: 'Sex', type: 'select', options: ['Male', 'Female', 'Other'], required: true },
-      { name: 'height', label: 'Height (cm)', type: 'number', required: true },
-      { name: 'weight', label: 'Weight (kg)', type: 'number', required: true },
+      { 
+        name: 'age', 
+        label: 'Age Range', 
+        type: 'select', 
+        options: [
+          'Under 18',
+          '18-24',
+          '25-34',
+          '35-44',
+          '45-54',
+          '55-64',
+          '65+'
+        ],
+        required: true 
+      },
+      { 
+        name: 'sex', 
+        label: 'Sex', 
+        type: 'radio-group',
+        options: ['Male', 'Female', 'Other'],
+        required: true 
+      },
+      { 
+        name: 'height', 
+        label: 'Height (cm)', 
+        type: 'range', 
+        min: 100,
+        max: 250,
+        defaultValue: 170,
+        allowCustomInput: true,
+        required: true 
+      },
+      { 
+        name: 'weight', 
+        label: 'Weight (kg)', 
+        type: 'range',
+        min: 40,
+        max: 200,
+        defaultValue: 70,
+        allowCustomInput: true,
+        required: true 
+      },
     ]
   },
   {
@@ -54,7 +93,7 @@ const QUESTIONNAIRE_STEPS = [
         name: 'healthConcerns', 
         label: 'Current Health Concerns', 
         type: 'multiselect',
-        options: ['Energy Levels', 'Sleep Quality', 'Joint Health', 'Digestive Issues', 'Immune Support', 'Stress Management', 'Other'],
+        options: ['Energy Levels', 'Sleep Quality', 'Joint Health', 'Digestive Issues', 'Immune Support', 'Stress Management', 'Weight loss', 'Muscle Building', 'Other'],
         required: true 
       },
       { 
@@ -66,30 +105,10 @@ const QUESTIONNAIRE_STEPS = [
       },
       { 
         name: 'medications', 
-        label: 'Current Medications', 
+        label: 'Current Medications or Supplements', 
         type: 'text',
-        placeholder: 'List any medications you take',
+        placeholder: 'List any medications or supplements you take',
         required: false 
-      },
-    ]
-  },
-  {
-    id: 'supplements',
-    title: 'Current Supplements',
-    fields: [
-      { 
-        name: 'currentSupplements', 
-        label: 'Current Supplements', 
-        type: 'text',
-        placeholder: 'List any supplements you currently take',
-        required: false 
-      },
-      { 
-        name: 'supplementGoals', 
-        label: 'What are your main goals for taking supplements?', 
-        type: 'multiselect',
-        options: ['General Health', 'Energy', 'Immunity', 'Sleep', 'Joint Health', 'Muscle Building', 'Weight Management', 'Other'],
-        required: true 
       },
     ]
   }
@@ -98,6 +117,7 @@ const QUESTIONNAIRE_STEPS = [
 const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastStep }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [showCustomInput, setShowCustomInput] = useState({});
 
   const validateStep = () => {
     const newErrors = {};
@@ -139,74 +159,171 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
     setTouched(prev => ({ ...prev, [fieldName]: true }));
   };
 
+  const renderField = (field) => {
+    const value = formData[field.name] || field.defaultValue || '';
+    const error = touched[field.name] && errors[field.name];
+
+    switch (field.type) {
+      case 'range':
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center space-x-4">
+              <input
+                type="range"
+                min={field.min}
+                max={field.max}
+                value={value}
+                onChange={(e) => onChange(field.name, e.target.value)}
+                onFocus={() => handleFieldFocus(field.name)}
+                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              {field.allowCustomInput && !showCustomInput[field.name] ? (
+                <button
+                  onClick={() => setShowCustomInput(prev => ({ ...prev, [field.name]: true }))}
+                  className="w-20 px-3 py-1 text-sm bg-white border border-gray-200 rounded hover:border-sky-500 transition-colors text-center"
+                >
+                  {value} {field.name === 'height' ? 'cm' : 'kg'}
+                </button>
+              ) : field.allowCustomInput ? (
+                <input
+                  type="number"
+                  value={value}
+                  min={field.min}
+                  max={field.max}
+                  onChange={(e) => {
+                    // Allow empty string or numbers within range
+                    const newValue = e.target.value;
+                    if (newValue === '' || (Number(newValue) >= field.min && Number(newValue) <= field.max)) {
+                      onChange(field.name, newValue);
+                    }
+                  }}
+                  onBlur={() => {
+                    // On blur, if empty or invalid, set to default
+                    if (value === '' || isNaN(Number(value))) {
+                      onChange(field.name, field.defaultValue.toString());
+                    }
+                    setShowCustomInput(prev => ({ ...prev, [field.name]: false }));
+                  }}
+                  className="w-20 px-3 py-1 text-sm border border-gray-200 rounded focus:border-sky-500 focus:ring-1 focus:ring-sky-200 text-center"
+                  autoFocus
+                />
+              ) : (
+                <span className="w-20 text-center text-sm text-gray-600">
+                  {value} {field.name === 'height' ? 'cm' : 'kg'}
+                </span>
+              )}
+            </div>
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>{field.min} {field.name === 'height' ? 'cm' : 'kg'}</span>
+              <span>{field.max} {field.name === 'height' ? 'cm' : 'kg'}</span>
+            </div>
+          </div>
+        );
+
+      case 'select':
+        return (
+          <div className="relative">
+            <select
+              value={value}
+              onChange={(e) => onChange(field.name, e.target.value)}
+              onFocus={() => handleFieldFocus(field.name)}
+              className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
+                ${error ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
+                ${value ? 'border-green-200' : ''}
+                appearance-none bg-white`}
+            >
+              <option value="">Select {field.label.toLowerCase()}...</option>
+              {field.options.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        );
+
+      case 'multiselect':
+        return (
+          <div className="space-y-1 p-2 border rounded-md bg-white">
+            {field.options.map(option => (
+              <label key={option} className="flex items-center space-x-2 p-1.5 hover:bg-gray-50 rounded transition-colors duration-150">
+                <input
+                  type="checkbox"
+                  checked={formData[field.name]?.includes(option) || false}
+                  onChange={(e) => {
+                    const current = formData[field.name] || [];
+                    const value = e.target.checked
+                      ? [...current, option]
+                      : current.filter(item => item !== option);
+                    onChange(field.name, value);
+                    handleFieldFocus(field.name);
+                  }}
+                  className="w-4 h-4 rounded text-sky-500 focus:ring-1 focus:ring-sky-200 transition-all duration-200"
+                />
+                <span className="text-sm text-gray-700">{option}</span>
+              </label>
+            ))}
+          </div>
+        );
+
+      case 'radio-group':
+        return (
+          <div className="flex justify-between items-center space-x-4">
+            {field.options.map(option => (
+              <label
+                key={option}
+                className={`flex-1 text-center p-2 border rounded-lg cursor-pointer transition-all duration-200
+                  ${value === option 
+                    ? 'bg-sky-500 text-white border-sky-500' 
+                    : 'bg-white text-gray-700 border-gray-200 hover:border-sky-500'}`}
+              >
+                <input
+                  type="radio"
+                  name={field.name}
+                  value={option}
+                  checked={value === option}
+                  onChange={(e) => onChange(field.name, e.target.value)}
+                  className="hidden"
+                />
+                {option}
+              </label>
+            ))}
+          </div>
+        );
+
+      default:
+        return (
+          <input
+            type={field.type}
+            value={value}
+            onChange={(e) => onChange(field.name, e.target.value)}
+            onFocus={() => handleFieldFocus(field.name)}
+            placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+            className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
+              ${error && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
+              ${value && !error ? 'border-green-200' : ''}`}
+          />
+        );
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100">
       <div className="p-4">
         <h2 className="text-lg font-semibold text-gray-900 mb-1">{step.title}</h2>
         <p className="text-sm text-gray-600 mb-4">Please fill in the following information.</p>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           {step.fields.map(field => (
-            <div key={field.name} className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
+            <div key={field.name} className="space-y-2">
+              <label className="block text-base font-semibold text-gray-800">
                 {field.label} {field.required && <span className="text-red-500">*</span>}
               </label>
               
-              {field.type === 'select' ? (
-                <div className="relative">
-                  <select
-                    value={formData[field.name] || ''}
-                    onChange={(e) => onChange(field.name, e.target.value)}
-                    onFocus={() => handleFieldFocus(field.name)}
-                    className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
-                      ${errors[field.name] && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
-                      ${formData[field.name] ? 'border-green-200' : ''}
-                      appearance-none bg-white`}
-                  >
-                    <option value="">Select {field.label.toLowerCase()}...</option>
-                    {field.options.map(option => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              ) : field.type === 'multiselect' ? (
-                <div className="space-y-1 p-2 border rounded-md bg-white">
-                  {field.options.map(option => (
-                    <label key={option} className="flex items-center space-x-2 p-1.5 hover:bg-gray-50 rounded transition-colors duration-150">
-                      <input
-                        type="checkbox"
-                        checked={formData[field.name]?.includes(option) || false}
-                        onChange={(e) => {
-                          const current = formData[field.name] || [];
-                          const value = e.target.checked
-                            ? [...current, option]
-                            : current.filter(item => item !== option);
-                          onChange(field.name, value);
-                          handleFieldFocus(field.name);
-                        }}
-                        className="w-4 h-4 rounded text-sky-500 focus:ring-1 focus:ring-sky-200 transition-all duration-200"
-                      />
-                      <span className="text-sm text-gray-700">{option}</span>
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <input
-                  type={field.type}
-                  value={formData[field.name] || ''}
-                  onChange={(e) => onChange(field.name, e.target.value)}
-                  onFocus={() => handleFieldFocus(field.name)}
-                  placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                  className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
-                    ${errors[field.name] && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
-                    ${formData[field.name] && !errors[field.name] ? 'border-green-200' : ''}`}
-                />
-              )}
+              {renderField(field)}
               
               {errors[field.name] && touched[field.name] && (
                 <p className="text-xs text-red-500">
@@ -267,6 +384,8 @@ const ChatInterface = () => {
   const [messageReactions, setMessageReactions] = useState({});
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   
+  const navigate = useNavigate();
+
   // Initialize OpenAI client
   const openai = React.useMemo(() => {
     try {
@@ -525,7 +644,7 @@ const ChatInterface = () => {
 
     // First welcome message
     const welcomeMessage1 = {
-      text: "👋 Heyoo! I'm Swallow Hero AI.",
+      text: "**👋 Heyoo! I'm Swallow Hero AI**",
       sender: 'ai',
       timestamp: new Date().toISOString(),
     };
@@ -539,7 +658,7 @@ const ChatInterface = () => {
 
     // Second welcome message
     const welcomeMessage2 = {
-      text: "I'm analysing your health profile to create personalised supplement recommendations for you. One moment please...",
+      text: "**I'm analysing your health profile to create personalised supplement recommendations for you. One moment please...**",
       sender: 'ai',
       timestamp: new Date().toISOString(),
     };
@@ -578,7 +697,7 @@ IMPORTANT NOTES:
       ];
 
       // Wait 3 more seconds before showing the analysis results
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Get AI response
       const completion = await makeOpenAIRequest(conversationHistory);
@@ -609,12 +728,21 @@ IMPORTANT NOTES:
     }
   };
 
-  // Add this function to format AI messages
+  // Update the formatAIMessage function
   const formatAIMessage = (text) => {
     // Split into sections by double newlines
     const sections = text.split('\n\n').filter(Boolean);
     
     return sections.map((section, index) => {
+      // Check if text is wrapped in bold markers
+      if (section.startsWith('**') && section.endsWith('**')) {
+        return (
+          <p key={index} className="font-bold mb-2">
+            {section.replace(/^\*\*|\*\*$/g, '')}
+          </p>
+        );
+      }
+      
       // Check if it's a list/bullet points
       if (section.includes('\n-') || section.includes('\n•')) {
         const [title, ...items] = section.split('\n').filter(Boolean);
@@ -831,10 +959,23 @@ IMPORTANT NOTES:
           <div className="h-full flex items-center justify-center">
             <div className="text-center max-w-xl px-4">
               <p className="text-lg mb-3 font-semibold text-gray-700">👋 Welcome! How can I help with your supplement needs?</p>
-              <div className="space-y-2 text-gray-600 text-sm">
-                <p>"I want to improve my energy levels"</p>
-                <p>"What supplements are good for joint health?"</p>
-                <p>"I need help with my sleep quality"</p>
+              <div className="space-y-4">
+                <div className="space-y-2 text-gray-600 text-sm">
+                  <p>"I want to improve my energy levels"</p>
+                  <p>"What supplements are good for joint health?"</p>
+                  <p>"I need help with my sleep quality"</p>
+                </div>
+                <div className="pt-4 border-t border-gray-200">
+                  <Link 
+                    to="/faq"
+                    className="text-sky-500 hover:text-sky-600 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
+                  >
+                    <span>View Frequently Asked Questions</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

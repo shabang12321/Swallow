@@ -48,6 +48,9 @@ const Navigation = () => {
             <Link to="/chat" className={`nav-link ${isActive('/chat') ? 'bg-sky-50 text-sky-600' : ''}`}>
               AI Chat
             </Link>
+            <Link to="/faq" className={`nav-link ${isActive('/faq') ? 'bg-sky-50 text-sky-600' : ''}`}>
+              FAQ
+            </Link>
             <Link to="/plans" className={`nav-link ${isActive('/plans') ? 'bg-sky-50 text-sky-600' : ''}`}>
               Plans
             </Link>
@@ -81,6 +84,15 @@ const Navigation = () => {
             onClick={handleLinkClick}
           >
             AI Chat
+          </Link>
+          <Link 
+            to="/faq" 
+            className={`block px-3 py-2 rounded-md text-base font-medium ${
+              isActive('/faq') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+            }`}
+            onClick={handleLinkClick}
+          >
+            FAQ
           </Link>
           <Link 
             to="/plans" 
