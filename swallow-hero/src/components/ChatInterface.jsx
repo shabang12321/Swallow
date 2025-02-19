@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import OpenAI from 'openai';
 
 // Retry configuration
@@ -140,109 +140,111 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
   };
 
   return (
-    <div className="p-8 bg-white rounded-xl shadow-lg transition-all duration-300 ease-in-out transform hover:shadow-xl">
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">{step.title}</h2>
-      <p className="text-gray-600 mb-6">Please fill in the following information to help us provide better recommendations.</p>
-      
-      <div className="space-y-6">
-        {step.fields.map(field => (
-          <div key={field.name} className="space-y-2 transition-all duration-300">
-            <label className="block text-sm font-semibold text-gray-700">
-              {field.label} {field.required && <span className="text-red-500">*</span>}
-            </label>
-            
-            {field.type === 'select' ? (
-              <div className="relative">
-                <select
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+      <div className="p-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">{step.title}</h2>
+        <p className="text-sm text-gray-600 mb-4">Please fill in the following information.</p>
+        
+        <div className="space-y-4">
+          {step.fields.map(field => (
+            <div key={field.name} className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label} {field.required && <span className="text-red-500">*</span>}
+              </label>
+              
+              {field.type === 'select' ? (
+                <div className="relative">
+                  <select
+                    value={formData[field.name] || ''}
+                    onChange={(e) => onChange(field.name, e.target.value)}
+                    onFocus={() => handleFieldFocus(field.name)}
+                    className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
+                      ${errors[field.name] && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
+                      ${formData[field.name] ? 'border-green-200' : ''}
+                      appearance-none bg-white`}
+                  >
+                    <option value="">Select {field.label.toLowerCase()}...</option>
+                    {field.options.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              ) : field.type === 'multiselect' ? (
+                <div className="space-y-1 p-2 border rounded-md bg-white">
+                  {field.options.map(option => (
+                    <label key={option} className="flex items-center space-x-2 p-1.5 hover:bg-gray-50 rounded transition-colors duration-150">
+                      <input
+                        type="checkbox"
+                        checked={formData[field.name]?.includes(option) || false}
+                        onChange={(e) => {
+                          const current = formData[field.name] || [];
+                          const value = e.target.checked
+                            ? [...current, option]
+                            : current.filter(item => item !== option);
+                          onChange(field.name, value);
+                          handleFieldFocus(field.name);
+                        }}
+                        className="w-4 h-4 rounded text-sky-500 focus:ring-1 focus:ring-sky-200 transition-all duration-200"
+                      />
+                      <span className="text-sm text-gray-700">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  type={field.type}
                   value={formData[field.name] || ''}
                   onChange={(e) => onChange(field.name, e.target.value)}
                   onFocus={() => handleFieldFocus(field.name)}
-                  className={`w-full p-3 border rounded-lg focus:ring-2 transition-all duration-200
+                  placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                  className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
                     ${errors[field.name] && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
-                    ${formData[field.name] ? 'border-green-200' : ''}
-                    appearance-none bg-white`}
-                >
-                  <option value="">Select {field.label.toLowerCase()}...</option>
-                  {field.options.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            ) : field.type === 'multiselect' ? (
-              <div className="space-y-2 p-3 border rounded-lg bg-white">
-                {field.options.map(option => (
-                  <label key={option} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors duration-150">
-                    <input
-                      type="checkbox"
-                      checked={formData[field.name]?.includes(option) || false}
-                      onChange={(e) => {
-                        const current = formData[field.name] || [];
-                        const value = e.target.checked
-                          ? [...current, option]
-                          : current.filter(item => item !== option);
-                        onChange(field.name, value);
-                        handleFieldFocus(field.name);
-                      }}
-                      className="w-4 h-4 rounded text-sky-500 focus:ring-sky-200 transition-all duration-200"
-                    />
-                    <span className="text-gray-700">{option}</span>
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <input
-                type={field.type}
-                value={formData[field.name] || ''}
-                onChange={(e) => onChange(field.name, e.target.value)}
-                onFocus={() => handleFieldFocus(field.name)}
-                placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                className={`w-full p-3 border rounded-lg focus:ring-2 transition-all duration-200
-                  ${errors[field.name] && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
-                  ${formData[field.name] && !errors[field.name] ? 'border-green-200' : ''}`}
-              />
-            )}
-            
-            {errors[field.name] && touched[field.name] && (
-              <p className="text-sm text-red-500 mt-1 animate-fadeIn">
-                {errors[field.name]}
-              </p>
-            )}
-            
-            {field.description && (
-              <p className="text-sm text-gray-500 mt-1">
-                {field.description}
-              </p>
-            )}
-          </div>
-        ))}
+                    ${formData[field.name] && !errors[field.name] ? 'border-green-200' : ''}`}
+                />
+              )}
+              
+              {errors[field.name] && touched[field.name] && (
+                <p className="text-xs text-red-500">
+                  {errors[field.name]}
+                </p>
+              )}
+              
+              {field.description && (
+                <p className="text-xs text-gray-500">
+                  {field.description}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-8 flex justify-between items-center">
+      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
         <button
           type="button"
           onClick={onBack}
-          className={`px-6 py-3 text-gray-600 hover:text-gray-800 flex items-center space-x-2 transition-all duration-200
+          className={`px-4 py-2 text-gray-600 hover:text-gray-800 flex items-center space-x-2 transition-all duration-200
             ${!onBack ? 'opacity-0 pointer-events-none' : ''}`}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
-          <span>Back</span>
+          <span className="text-sm">Back</span>
         </button>
         
         <button
           type="button"
           onClick={handleNext}
-          className="px-6 py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-lg hover:from-sky-600 hover:to-sky-700 
-            transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
+          className="px-4 py-2 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-md hover:from-sky-600 hover:to-sky-700 
+            transform hover:scale-105 transition-all duration-200 flex items-center space-x-2 text-sm"
         >
           <span>{isLastStep ? 'Start Chat' : 'Next'}</span>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -255,12 +257,15 @@ const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showDisclaimer, setShowDisclaimer] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [showQuestionnaire, setShowQuestionnaire] = useState(true);
   const [formData, setFormData] = useState({});
   const messagesEndRef = useRef(null);
+  const [messageReactions, setMessageReactions] = useState({});
+  const [copiedMessageId, setCopiedMessageId] = useState(null);
   
   // Initialize OpenAI client
   const openai = React.useMemo(() => {
@@ -488,33 +493,28 @@ const ChatInterface = () => {
   };
 
   const handleQuestionnaireComplete = async () => {
-    // Format collected data for the AI in a more readable way
-    const userProfile = [
-      "MY HEALTH PROFILE",
-      "----------------------------------------",
-      "",
-      "BASIC INFORMATION",
-      `Age: ${formData.age}`,
-      `Sex: ${formData.sex}`,
-      `Height: ${formData.height}cm`,
-      `Weight: ${formData.weight}kg`,
-      "",
-      "LIFESTYLE & DIET",
-      `Activity Level: ${formData.activityLevel}`,
-      `Diet Type: ${formData.dietType}`,
-      `Dietary Restrictions: ${formData.dietaryRestrictions?.join(', ') || 'None'}`,
-      "",
-      "HEALTH INFORMATION",
-      `Health Concerns: ${formData.healthConcerns?.join(', ')}`,
-      `Medical Conditions: ${formData.medicalConditions || 'None reported'}`,
-      `Current Medications: ${formData.medications || 'None reported'}`,
-      "",
-      "SUPPLEMENT INFORMATION",
-      `Current Supplements: ${formData.currentSupplements || 'None reported'}`,
-      `Supplement Goals: ${formData.supplementGoals?.join(', ')}`,
-      "",
-      "Please provide personalized supplement recommendations based on my profile."
-    ].join('\n');
+    // Format collected data with explicit line breaks and spacing
+    const userProfile = `🔍 Health Profile Summary
+
+👤 Basic Information 
+    • Age: ${formData.age}
+    • Sex: ${formData.sex}
+    • Height: ${formData.height}cm
+    • Weight: ${formData.weight}kg
+
+💪 Lifestyle & Diet 
+    • Activity: ${formData.activityLevel}
+    • Diet: ${formData.dietType}
+    ${formData.dietaryRestrictions?.length ? `• Restrictions: ${formData.dietaryRestrictions.join(', ')}` : '• Restrictions: None'}
+
+❤️ Health Status 
+    • Concerns: ${formData.healthConcerns.join(', ')}
+    ${formData.medicalConditions ? `• Medical: ${formData.medicalConditions}` : '• Medical: None'}
+    ${formData.medications ? `• Medications: ${formData.medications}` : '• Medications: None'}
+
+💊 Current Supplements 
+    • Current: ${formData.currentSupplements || 'None'}
+    ${formData.supplementGoals?.length ? `• Goals: ${formData.supplementGoals.join(', ')}` : '• Goals: None'}`;
 
     // Add initial message with user profile
     const initialMessage = {
@@ -523,16 +523,28 @@ const ChatInterface = () => {
       timestamp: new Date().toISOString(),
     };
 
-    // Add welcome message from AI
-    const welcomeMessage = {
-      text: "👋 Hello! I'm analysing your health profile to create personalized supplement recommendations for you. One moment please...",
+    // First welcome message
+    const welcomeMessage1 = {
+      text: "👋 Heyoo! I'm Swallow Hero AI.",
       sender: 'ai',
       timestamp: new Date().toISOString(),
     };
 
-    setMessages([initialMessage, welcomeMessage]);
+    setMessages([initialMessage, welcomeMessage1]);
     setShowQuestionnaire(false);
     setIsTyping(true);
+
+    // Wait 2 seconds before second message
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Second welcome message
+    const welcomeMessage2 = {
+      text: "I'm analysing your health profile to create personalised supplement recommendations for you. One moment please...",
+      sender: 'ai',
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages(prev => [...prev, welcomeMessage2]);
 
     // Update system message to ensure cleaner responses
     const updatedSystemMessage = {
@@ -565,6 +577,9 @@ IMPORTANT NOTES:
         { role: 'user', content: userProfile }
       ];
 
+      // Wait 3 more seconds before showing the analysis results
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
       // Get AI response
       const completion = await makeOpenAIRequest(conversationHistory);
 
@@ -594,10 +609,144 @@ IMPORTANT NOTES:
     }
   };
 
+  // Add this function to format AI messages
+  const formatAIMessage = (text) => {
+    // Split into sections by double newlines
+    const sections = text.split('\n\n').filter(Boolean);
+    
+    return sections.map((section, index) => {
+      // Check if it's a list/bullet points
+      if (section.includes('\n-') || section.includes('\n•')) {
+        const [title, ...items] = section.split('\n').filter(Boolean);
+        return (
+          <div key={index} className="space-y-2">
+            {title && <p className="font-semibold">{title}</p>}
+            <ul className="space-y-1.5">
+              {items.map((item, i) => (
+                <li key={i} className="flex items-start space-x-2">
+                  <span className="text-sky-500 mt-1">•</span>
+                  <span>{item.replace(/^[-•]\s*/, '')}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+      
+      // Check if it's a supplement recommendation
+      if (section.toLowerCase().includes('supplement') || section.includes(':')) {
+        const [title, ...details] = section.split('\n');
+        return (
+          <div key={index} className="space-y-2">
+            <p className="font-semibold">{title}</p>
+            <div className="pl-4 space-y-1">
+              {details.map((detail, i) => (
+                <p key={i} className="flex items-start space-x-2">
+                  {detail.includes(':') ? (
+                    <>
+                      <span className="text-sky-500">•</span>
+                      <span>
+                        <span className="font-medium">{detail.split(':')[0]}:</span>
+                        {detail.split(':')[1]}
+                      </span>
+                    </>
+                  ) : (
+                    <span>{detail}</span>
+                  )}
+                </p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // Regular paragraph
+      return <p key={index} className="mb-2">{section}</p>;
+    });
+  };
+
+  // Add this helper function near the top of the file
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleReaction = (messageIndex, reaction) => {
+    setMessageReactions(prev => ({
+      ...prev,
+      [messageIndex]: reaction
+    }));
+  };
+
+  const copyToClipboard = async (text, messageIndex) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedMessageId(messageIndex);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
+
+  // Add this constant at the top of the file
+  const MAX_MESSAGE_LENGTH = 500;
+
+  if (showWelcome) {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-sky-50 to-emerald-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl max-w-lg w-full p-8 shadow-xl">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-teal-500">
+              Welcome to Swallow Hero AI
+            </h1>
+            <p className="text-xl text-gray-600 mt-4 mb-8">
+              Answer 5 multiple choice questions and live better!
+            </p>
+            <div className="space-y-6 mb-16">
+              <div className="flex items-center space-x-4 text-gray-600">
+                <div className="w-10 h-10 bg-sky-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sky-600 text-lg">1</span>
+                </div>
+                <p className="text-left">Complete a quick health profile</p>
+              </div>
+              <div className="flex items-center space-x-4 text-gray-600">
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-teal-600 text-lg">2</span>
+                </div>
+                <p className="text-left">Get personalized supplement recommendations</p>
+              </div>
+              <div className="flex items-center space-x-4 text-gray-600">
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-emerald-600 text-lg">3</span>
+                </div>
+                <p className="text-left">Chat with AI for ongoing support</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                setShowWelcome(false);
+                setShowDisclaimer(true);
+              }}
+              className="w-full px-6 py-3 bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-lg 
+                       hover:from-sky-600 hover:to-teal-600 transition-all duration-200 
+                       shadow-md hover:shadow-lg transform hover:-translate-y-0.5
+                       flex items-center justify-center space-x-2"
+            >
+              <span>Get Started</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
-      <div className="flex items-center justify-center h-[600px] sm:h-[700px]">
-        <div className="text-center p-8 bg-red-50 rounded-lg">
+      <div className="h-screen w-full flex items-center justify-center bg-white">
+        <div className="text-center p-8">
           <h3 className="text-xl font-semibold text-red-600 mb-2">Error</h3>
           <p className="text-gray-700">{error}</p>
         </div>
@@ -616,9 +765,9 @@ IMPORTANT NOTES:
           </p>
           <button 
             onClick={() => setShowDisclaimer(false)}
-            className="w-full btn-primary py-3"
+            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg py-3 transition-colors duration-200"
           >
-            I Agree
+            I Understand
           </button>
         </div>
       </div>
@@ -628,120 +777,188 @@ IMPORTANT NOTES:
   if (showQuestionnaire) {
     const currentStepData = QUESTIONNAIRE_STEPS[currentStep];
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-        <div className="w-full max-w-2xl">
-          <div className="mb-6">
-            <div className="flex justify-between mb-2">
-              {QUESTIONNAIRE_STEPS.map((step, index) => (
-                <div
-                  key={step.id}
-                  className={`flex-1 h-2 mx-1 rounded-full ${
-                    index <= currentStep ? 'bg-sky-500' : 'bg-gray-200'
-                  }`}
-                />
-              ))}
-            </div>
-            <p className="text-center text-sm text-gray-600">
-              Step {currentStep + 1} of {QUESTIONNAIRE_STEPS.length}
-            </p>
+      <div className="h-screen w-full flex flex-col bg-white">
+        {/* Title Section */}
+        <div className="py-3 px-4 border-b border-gray-200">
+          <h1 className="text-xl font-bold text-gray-900">Health Profile Questionnaire</h1>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="px-4 py-2 border-b border-gray-100">
+          <div className="flex justify-between mb-1">
+            {QUESTIONNAIRE_STEPS.map((step, index) => (
+              <div
+                key={step.id}
+                className={`flex-1 h-1.5 mx-0.5 rounded-full transition-colors duration-300 ${
+                  index <= currentStep ? 'bg-sky-500' : 'bg-gray-200'
+                }`}
+              />
+            ))}
           </div>
-          <QuestionnaireStep
-            step={currentStepData}
-            formData={formData}
-            onChange={handleFormChange}
-            onNext={() => {
-              if (currentStep === QUESTIONNAIRE_STEPS.length - 1) {
-                handleQuestionnaireComplete();
-              } else {
-                setCurrentStep(prev => prev + 1);
-              }
-            }}
-            onBack={currentStep > 0 ? () => setCurrentStep(prev => prev - 1) : null}
-            isLastStep={currentStep === QUESTIONNAIRE_STEPS.length - 1}
-          />
+          <p className="text-center text-xs text-gray-500">
+            Step {currentStep + 1} of {QUESTIONNAIRE_STEPS.length}
+          </p>
+        </div>
+
+        {/* Questionnaire Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-2xl mx-auto px-4 py-4">
+            <QuestionnaireStep
+              step={currentStepData}
+              formData={formData}
+              onChange={handleFormChange}
+              onNext={() => {
+                if (currentStep === QUESTIONNAIRE_STEPS.length - 1) {
+                  handleQuestionnaireComplete();
+                } else {
+                  setCurrentStep(prev => prev + 1);
+                }
+              }}
+              onBack={currentStep > 0 ? () => setCurrentStep(prev => prev - 1) : null}
+              isLastStep={currentStep === QUESTIONNAIRE_STEPS.length - 1}
+            />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[600px] sm:h-[700px] relative bg-gradient-to-b from-white to-gray-50 rounded-xl">
+    <div className="fixed inset-0 flex flex-col bg-white pt-16">
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto pb-16">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 mt-8 px-4">
-            <p className="text-xl mb-4 font-semibold">👋 Welcome to Swallow Hero AI Chat!</p>
-            <p className="text-lg mb-3">Start by telling me about your health goals and any specific concerns.</p>
-            <p className="text-base text-gray-400">For example:</p>
-            <div className="space-y-2 mt-2 text-gray-600">
-              <p>"I want to improve my energy levels"</p>
-              <p>"What supplements are good for joint health?"</p>
-              <p>"I need help with my sleep quality"</p>
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center max-w-xl px-4">
+              <p className="text-lg mb-3 font-semibold text-gray-700">👋 Welcome! How can I help with your supplement needs?</p>
+              <div className="space-y-2 text-gray-600 text-sm">
+                <p>"I want to improve my energy levels"</p>
+                <p>"What supplements are good for joint health?"</p>
+                <p>"I need help with my sleep quality"</p>
+              </div>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+          <div className="min-h-full">
+            <div className="max-w-3xl mx-auto px-4 py-4 space-y-6">
+              {messages.map((message, index) => (
                 <div
-                  className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 ${
-                    message.sender === 'user'
-                      ? 'bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-tr-none shadow-sm'
-                      : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none shadow-sm'
-                  }`}
+                  key={index}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  {message.text}
-                </div>
-              </div>
-            ))}
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-none px-4 py-3 text-gray-500 shadow-sm">
-                  <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce delay-200"></div>
+                  <div className="max-w-[85%] sm:max-w-[75%]">
+                    <div
+                      className={`relative group rounded-2xl px-4 py-3 ${
+                        message.sender === 'user'
+                          ? 'bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-tr-none'
+                          : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                      }`}
+                    >
+                      {message.sender === 'ai' && (
+                        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => copyToClipboard(message.text, index)}
+                            className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                            title="Copy message"
+                          >
+                            {copiedMessageId === index ? (
+                              <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                      {message.sender === 'ai' ? (
+                        <div className="space-y-3">
+                          {formatAIMessage(message.text)}
+                        </div>
+                      ) : (
+                        <pre className="font-sans whitespace-pre-wrap">{message.text}</pre>
+                      )}
+                    </div>
+                    <div className="flex items-center mt-1 space-x-2">
+                      <div className={`text-xs text-gray-500 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                        {formatTimestamp(message.timestamp)}
+                      </div>
+                      {message.sender === 'ai' && (
+                        <div className="flex space-x-1">
+                          {['👍', '❤️', '🎯'].map((reaction) => (
+                            <button
+                              key={reaction}
+                              onClick={() => handleReaction(index, reaction)}
+                              className={`text-xs p-1 rounded-full transition-transform hover:scale-125 ${
+                                messageReactions[index] === reaction ? 'bg-gray-100' : ''
+                              }`}
+                            >
+                              {reaction}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} className="h-1" />
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-2.5">
+                    <div className="flex space-x-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
         )}
       </div>
 
-      {/* Input Form */}
-      <div className="p-4 border-t border-gray-100 bg-white rounded-b-xl">
-        <form onSubmit={handleSubmit} className="relative" noValidate>
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Type your message here..."
-            className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                if (inputMessage.trim()) {
-                  handleSubmit(e);
+      {/* Input Form - Fixed at bottom */}
+      <div className="border-t border-gray-200 bg-white">
+        <div className="max-w-3xl mx-auto px-4 py-3">
+          <form onSubmit={handleSubmit} className="relative" noValidate>
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={(e) => {
+                if (e.target.value.length <= MAX_MESSAGE_LENGTH) {
+                  setInputMessage(e.target.value);
                 }
-              }
-            }}
-          />
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-sky-500 hover:text-sky-600 disabled:text-gray-300 disabled:hover:text-gray-300 transition-colors duration-200"
-            disabled={!inputMessage.trim()}
-          >
-            <svg className="w-6 h-6 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
-        </form>
+              }}
+              placeholder="Type your message here..."
+              className="w-full px-4 py-3 pr-24 rounded-lg border border-gray-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (inputMessage.trim()) {
+                    handleSubmit(e);
+                  }
+                }
+              }}
+            />
+            <div className="absolute right-14 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+              {inputMessage.length}/{MAX_MESSAGE_LENGTH}
+            </div>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-sky-500 hover:text-sky-600 disabled:text-gray-300 disabled:hover:text-gray-300 transition-colors duration-200"
+              disabled={!inputMessage.trim()}
+            >
+              <svg className="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
