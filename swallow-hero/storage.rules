@@ -1,0 +1,35 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isUserOwned(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024; // 5MB
+    }
+
+    // Default deny all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // User profile images
+    match /users/{userId}/profile/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isUserOwned(userId) && isValidImage();
+    }
+
+    // Public assets
+    match /public/{fileName} {
+      allow read: if true;
+      allow write: if false;  // Only admins can write via Firebase Console
+    }
+  }
+} 

@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isUserOwned(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidText(text) {
+      return text is string && text.size() <= 1000;
+    }
+    
+    function isValidTimestamp(timestamp) {
+      return timestamp is timestamp;
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isUserOwned(userId) && 
+        request.resource.data.keys().hasAll(['email', 'createdAt']) &&
+        request.resource.data.email is string &&
+        isValidTimestamp(request.resource.data.createdAt);
+      allow update: if isUserOwned(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['lastLogin', 'preferences', 'profile']);
+    }
+
+    // Chat messages
+    match /chats/{chatId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+        request.resource.data.keys().hasAll(['userId', 'message', 'timestamp']) &&
+        request.resource.data.userId == request.auth.uid &&
+        isValidText(request.resource.data.message) &&
+        isValidTimestamp(request.resource.data.timestamp);
+      allow update, delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+    }
+
+    // Health profiles
+    match /healthProfiles/{userId} {
+      allow read: if isUserOwned(userId);
+      allow write: if isUserOwned(userId) &&
+        request.resource.data.keys().hasAll(['age', 'sex', 'height', 'weight', 'lastUpdated']) &&
+        request.resource.data.age is number &&
+        request.resource.data.height is number &&
+        request.resource.data.weight is number &&
+        isValidTimestamp(request.resource.data.lastUpdated);
+    }
+
+    // Public data (FAQs, Plans, etc.)
+    match /public/{document} {
+      allow read: if true;
+      allow write: if false;  // Only admins can write via Firebase Console
+    }
+
+    // Rate limiting collection
+    match /userActivity/{userId} {
+      allow read: if isUserOwned(userId);
+      allow write: if isUserOwned(userId) &&
+        ((request.time - resource.data.lastAction) > duration.value(1, 's'));
+    }
+  }
+} 
