@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "firebase": "^11.3.1",
+    "react-firebase-hooks": "^5.1.1",
+    "react-phone-number-input": "^3.4.12"
+  }
+}
