@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './config/firebase';
@@ -53,6 +53,33 @@ const ProtectedChatRoute = () => {
 
 const App = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Debug environment variables and initialization
+    console.log('App Environment:', {
+      nodeEnv: process.env.NODE_ENV,
+      hasOpenAIKey: !!process.env.REACT_APP_OPENAI_API_KEY,
+      hasFirebaseConfig: !!process.env.REACT_APP_FIREBASE_API_KEY
+    });
+  }, []);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-700">{error.message}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleCloseAuth = () => {
     setShowAuthModal(false);
