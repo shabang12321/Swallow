@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import OpenAI from 'openai';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -384,8 +384,6 @@ const ChatInterface = () => {
   const [messageReactions, setMessageReactions] = useState({});
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   
-  const navigate = useNavigate();
-
   // Initialize OpenAI client
   const openai = React.useMemo(() => {
     try {
