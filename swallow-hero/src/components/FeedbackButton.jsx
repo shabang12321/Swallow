@@ -1,31 +1,16 @@
 import React, { useState } from 'react';
+import { useForm, ValidationError } from '@formspree/react';
 
 const FeedbackButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [feedback, setFeedback] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showThankYou, setShowThankYou] = useState(false);
+  const [state, handleSubmit] = useForm("xeoevzbw");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!feedback.trim()) return;
-
-    setIsSubmitting(true);
-    
-    // Here you would typically send the feedback to your backend
-    // For now, we'll simulate an API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsSubmitting(false);
-    setShowThankYou(true);
-    
-    // Reset and close after showing thank you message
+  // Reset form and close modal after successful submission
+  if (state.succeeded) {
     setTimeout(() => {
       setIsOpen(false);
-      setFeedback('');
-      setShowThankYou(false);
     }, 2000);
-  };
+  }
 
   return (
     <>
@@ -58,13 +43,13 @@ const FeedbackButton = () => {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black bg-opacity-50"
-            onClick={() => !isSubmitting && setIsOpen(false)}
+            onClick={() => !state.submitting && setIsOpen(false)}
           />
 
           {/* Modal */}
           <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all">
             <button
-              onClick={() => !isSubmitting && setIsOpen(false)}
+              onClick={() => !state.submitting && setIsOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,7 +57,7 @@ const FeedbackButton = () => {
               </svg>
             </button>
 
-            {showThankYou ? (
+            {state.succeeded ? (
               <div className="text-center py-6">
                 <svg
                   className="w-16 h-16 text-green-500 mx-auto mb-4"
@@ -96,18 +81,24 @@ const FeedbackButton = () => {
                   Share Your Feedback
                 </h2>
                 <textarea
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
+                  id="message"
+                  name="message"
                   placeholder="Tell us what you think about Swallow Hero..."
                   className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-200 focus:border-sky-500 resize-none"
-                  disabled={isSubmitting}
+                  disabled={state.submitting}
+                />
+                <ValidationError 
+                  prefix="Message" 
+                  field="message"
+                  errors={state.errors}
+                  className="text-red-500 text-sm"
                 />
                 <button
                   type="submit"
-                  disabled={isSubmitting || !feedback.trim()}
+                  disabled={state.submitting}
                   className="w-full py-3 px-4 bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? (
+                  {state.submitting ? (
                     <span className="flex items-center justify-center">
                       <svg
                         className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
