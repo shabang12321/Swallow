@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 const Navigation = () => {
   const location = useLocation();
@@ -16,7 +17,11 @@ const Navigation = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2" onClick={handleLinkClick}>
-              <img src="/logo.png" alt="Swallow Hero Logo" className="w-8 h-8" />
+              <img 
+                src={logo} 
+                alt="Swallow Hero Logo" 
+                className="w-8 h-8"
+              />
               <span className="text-xl font-bold hero-gradient">Swallow Hero</span>
             </Link>
           </div>
