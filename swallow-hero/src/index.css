@@ -65,3 +65,128 @@ code {
 .faq-answer {
   @apply transition-all duration-200;
 }
+
+/* Markdown Styling */
+.markdown-content {
+    color: inherit;
+}
+
+/* Make only the main headers and supplement names use the gradient */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content > p > strong:first-child,
+.markdown-content > strong:first-child {
+    background: linear-gradient(135deg, 
+        rgb(18, 144, 202) 0%,    /* sky-500 */
+        rgb(20, 184, 166) 50%,   /* teal-500 */
+        rgb(34, 197, 94) 100%    /* green-500 */
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+    font-weight: 600;
+}
+
+/* Headers specific styling */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+    font-size: 1.25em;
+    margin: 1.2em 0 0.6em 0;
+    line-height: 1.3;
+}
+
+.markdown-content h3 {
+    font-size: 1.1em;
+}
+
+/* All other bold text (including Purpose/Dosage) */
+.markdown-content strong {
+    font-weight: 600;
+    color: inherit;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+}
+
+/* Ensure list items with strong tags (Purpose/Dosage) don't get the gradient */
+.markdown-content li strong {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    color: inherit;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin: 0.8em 0;
+    padding-left: 1.5em;
+}
+
+.markdown-content ul {
+    list-style-type: none;
+}
+
+.markdown-content ul li {
+    position: relative;
+}
+
+.markdown-content ul li::before {
+    content: "•";
+    position: absolute;
+    left: -1.2em;
+    color: currentColor;
+    opacity: 0.7;
+}
+
+.markdown-content ol {
+    list-style-type: decimal;
+}
+
+.markdown-content li {
+    margin: 0.4em 0;
+    padding-left: 0.3em;
+}
+
+.markdown-content p {
+    margin: 0.8em 0;
+    line-height: 1.6;
+}
+
+/* Spacing adjustments */
+.markdown-content > :first-child {
+    margin-top: 0;
+}
+
+.markdown-content > :last-child {
+    margin-bottom: 0;
+}
+
+/* Nested list styling */
+.markdown-content ul ul,
+.markdown-content ol ol,
+.markdown-content ul ol,
+.markdown-content ol ul {
+    margin: 0.3em 0 0.3em 1em;
+}
+
+/* Special formatting for supplement sections */
+.markdown-content h3 + ul,
+.markdown-content h3 + ol {
+    margin-top: 0.5em;
+}
+
+/* Horizontal spacing for nested content */
+.markdown-content li p {
+    margin: 0.4em 0;
+}
+
+/* Remove old message styling that might conflict */
+.message.assistant,
+.message.user {
+    /* Remove these classes if they exist */
+}

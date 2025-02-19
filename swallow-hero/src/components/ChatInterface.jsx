@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import OpenAI from 'openai';
 import { Link } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -73,7 +74,7 @@ const QUESTIONNAIRE_STEPS = [
         name: 'dietType', 
         label: 'Diet Type', 
         type: 'select',
-        options: ['Balanced', 'Inconsistent','Vegan/Vegetarian', 'Pescatarian', 'Keto', 'Other'],
+        options: ['Inconsistent', 'Balanced','Vegan/Vegetarian', 'Pescatarian', 'Keto', 'Other'],
         required: true 
       },
       { 
@@ -103,7 +104,6 @@ const QUESTIONNAIRE_STEPS = [
           'Stress & Mood',
           'Weight Management',
           'Muscle & Strength',
-          'Other'
         ],
         required: true 
       },
@@ -381,6 +381,65 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
   );
 };
 
+// Add these constants at the top of the file
+const ANALYSIS_FORMAT_TEMPLATE = `IMPORTANT: Your next response MUST follow this exact format:
+
+**Personalized Supplement Analysis**
+
+**Recommended Supplements:**
+
+**[Supplement Name]**
+- **Purpose:** [Brief purpose]
+- **Dosage:** [Clear dosage]
+
+[Repeat for each recommended supplement]
+
+**Important Notes:**
+- [Safety notes]
+- [Additional recommendations]`;
+
+const WELCOME_MESSAGES = {
+  initial: {
+    text: "**👋 Welcome to Swallow Hero AI**\n\nI'm here to help you live your best life!",
+    sender: 'ai'
+  },
+  analyzing: {
+    text: "**🔍 Analyzing Your Profile**\n\nI'm analysing your health profile to create personalised supplement recommendations for you. One moment please...",
+    sender: 'ai'
+  }
+};
+
+const SYSTEM_MESSAGE = {
+  role: "system",
+  content: `You are Swallow Hero, a professional vitamin and supplement advisor. You MUST format EVERY response, including your first response, using this exact structure:
+
+FIRST RESPONSE FORMAT:
+When first analyzing a health profile, respond with:
+
+**Personalized Supplement Analysis**
+
+**Recommended Supplements:**
+
+**[Supplement Name]**
+- **Purpose:** [Brief purpose]
+- **Dosage:** [Clear dosage]
+
+[Repeat for each supplement]
+
+**Important Notes:**
+- [Safety disclaimers]
+- [Additional specific notes]
+
+SUBSEQUENT RESPONSES:
+For all other responses, use the same structure.
+
+RULES:
+- EVERY response must use bold headers
+- EVERY supplement name must be bold
+- EVERY "Purpose:" and "Dosage:" must be bold
+- Never deviate from this format`
+};
+
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -445,58 +504,6 @@ const ChatInterface = () => {
     }
   }, []);
 
-  // System message to constrain AI behavior
-  const systemMessage = {
-    role: "system",
-    content: `You are Swallow Hero, a professional vitamin and supplement advisor with expertise in nutrition and supplementation. Your purpose is to provide personalized vitamin and supplement recommendations based on individual health profiles.
-
-    CORE RESPONSIBILITIES:
-    1. Information Processing - Process the user's health profile based on their initial submission
-
-    CONVERSATION GUIDELINES:
-    1. Start by introducing yourself and asking about their primary health goals
-    2. Ask questions one at a time to avoid overwhelming the user
-    3. Acknowledge and validate their concerns
-    4. Use a friendly, professional tone
-    5. If information is missing, politely ask follow-up questions
-
-    RECOMMENDATION PROTOCOL:
-    1. Base all recommendations on scientific evidence
-    2. Consider potential interactions with:
-       - Existing medications
-       - Other supplements
-       - Medical conditions
-    3. Provide specific dosage recommendations when appropriate
-    4. Explain the benefits and function of each recommended supplement
-    5. Suggest both essential and optional supplements
-    6. Prioritize recommendations based on user's main health goals
-
-    SAFETY PROTOCOLS:
-    1. Include these safety disclaimers with recommendations:
-       - Consult healthcare provider before starting any supplement regimen
-       - Potential interactions with medications
-       - Proper storage and usage instructions
-    2. Never diagnose medical conditions
-    3. Redirect medical diagnosis questions to healthcare providers
-    4. Emphasize that supplements complement but don't replace a balanced diet
-
-    BOUNDARIES:
-    1. Stay focused on vitamin and supplement topics
-    2. Do not provide medical diagnosis or treatment advice
-    3. Do not recommend supplements for serious medical conditions
-    4. Politely redirect off-topic questions back to vitamin and supplement discussion
-    5. If a question is beyond your scope, recommend consulting a healthcare provider
-
-    RESPONSE STRUCTURE:
-    1. Keep responses clear and concise
-    2. Break down complex information into digestible parts
-    3. Use bullet points for lists of recommendations
-    4. Include brief explanations for each recommendation
-    5. End with relevant safety disclaimers
-
-    Start by introducing yourself and asking about their primary health goals and concerns.`
-  };
-
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ 
@@ -517,19 +524,24 @@ const ChatInterface = () => {
     try {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 500,
-        presence_penalty: 0.3, // Slight penalty for repetition
-        frequency_penalty: 0.3, // Slight penalty for frequent tokens
-        top_p: 0.9, // Nucleus sampling
+        messages: [
+          {
+            role: "system",
+            content: "You MUST format your response exactly as specified in the system message, with bold headers and bold labels."
+          },
+          ...messages
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
+        presence_penalty: 0.0,
+        frequency_penalty: 0.0,
+        top_p: 0.95,
       });
 
       return completion;
     } catch (error) {
       if (error.response?.status === 429 && retryCount < MAX_RETRIES) {
-        console.log(`Rate limited, retrying in ${RETRY_DELAY}ms... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
-        await sleep(RETRY_DELAY * (retryCount + 1)); // Exponential backoff
+        await sleep(RETRY_DELAY * (retryCount + 1));
         return makeOpenAIRequest(messages, retryCount + 1);
       }
       throw error;
@@ -560,7 +572,7 @@ const ChatInterface = () => {
     try {
       // Prepare conversation history
       const conversationHistory = [
-        systemMessage,
+        SYSTEM_MESSAGE,
         ...messages.map(msg => ({
           role: msg.sender === 'user' ? 'user' : 'assistant',
           content: msg.text
@@ -621,40 +633,14 @@ const ChatInterface = () => {
   };
 
   const handleQuestionnaireComplete = async () => {
-    // Format collected data with explicit line breaks and spacing
-    const userProfile = `🔍 Health Profile Summary
-
-👤 Basic Information 
-    • Age: ${formData.age}
-    • Sex: ${formData.sex}
-    • Height: ${formData.height}cm
-    • Weight: ${formData.weight}kg
-
-💪 Lifestyle & Diet 
-    • Activity: ${formData.activityLevel}
-    • Diet: ${formData.dietType}
-    ${formData.dietaryRestrictions?.length ? `• Restrictions: ${formData.dietaryRestrictions.join(', ')}` : '• Restrictions: None'}
-
-❤️ Health Status 
-    • Concerns: ${formData.healthConcerns.join(', ')}
-    ${formData.medicalConditions ? `• Medical: ${formData.medicalConditions}` : '• Medical: None'}
-    ${formData.medications ? `• Medications: ${formData.medications}` : '• Medications: None'}
-
-💊 Current Supplements 
-    • Current: ${formData.currentSupplements || 'None'}
-    ${formData.supplementGoals?.length ? `• Goals: ${formData.supplementGoals.join(', ')}` : '• Goals: None'}`;
-
-    // Add initial message with user profile
     const initialMessage = {
-      text: userProfile,
+      text: formatUserProfile(formData),
       sender: 'user',
       timestamp: new Date().toISOString(),
     };
 
-    // First welcome message
     const welcomeMessage1 = {
-      text: "**👋 Heyoo! I'm Swallow Hero AI**",
-      sender: 'ai',
+      ...WELCOME_MESSAGES.initial,
       timestamp: new Date().toISOString(),
     };
 
@@ -662,56 +648,33 @@ const ChatInterface = () => {
     setShowQuestionnaire(false);
     setIsTyping(true);
 
-    // Wait 2 seconds before second message
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await sleep(2000);
 
-    // Second welcome message
     const welcomeMessage2 = {
-      text: "**I'm analysing your health profile to create personalised supplement recommendations for you. One moment please...**",
-      sender: 'ai',
+      ...WELCOME_MESSAGES.analyzing,
       timestamp: new Date().toISOString(),
     };
 
     setMessages(prev => [...prev, welcomeMessage2]);
 
-    // Update system message to ensure cleaner responses
-    const updatedSystemMessage = {
-      role: "system",
-      content: `You are Swallow Hero, a professional vitamin and supplement advisor. Provide clear, concise supplement recommendations.
-
-RESPONSE FORMAT:
-1. Keep responses organized and easy to read
-2. Don't use markdown characters (no * or #)
-3. Use clear sections with CAPS for headers
-4. For supplement recommendations, use this format:
-
-RECOMMENDED SUPPLEMENTS:
-
-[Supplement Name]
-- Purpose: [Brief purpose]
-- Dosage: [Clear dosage]
-
-IMPORTANT NOTES:
-- Always include brief safety disclaimer at the end
-- Avoid unnecessary introductions or filler text
-- Focus on clear, actionable recommendations
-- Use simple formatting without special characters`
-    };
-
     try {
-      // Prepare conversation history with the questionnaire data
       const conversationHistory = [
-        updatedSystemMessage,
-        { role: 'user', content: userProfile }
+        SYSTEM_MESSAGE,
+        {
+          role: "system",
+          content: ANALYSIS_FORMAT_TEMPLATE
+        },
+        {
+          role: 'user',
+          content: initialMessage.text
+        }
       ];
 
-      // Wait 3 more seconds before showing the analysis results
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await sleep(2000);
 
-      // Get AI response
       const completion = await makeOpenAIRequest(conversationHistory);
 
-      if (!completion.choices || !completion.choices[0] || !completion.choices[0].message) {
+      if (!completion.choices?.[0]?.message) {
         throw new Error('Invalid response format from OpenAI');
       }
 
@@ -735,6 +698,31 @@ IMPORTANT NOTES:
     } finally {
       setIsTyping(false);
     }
+  };
+
+  // Add this helper function
+  const formatUserProfile = (data) => {
+    return `🔍 Health Profile Summary
+
+👤 Basic Information 
+    • Age: ${data.age}
+    • Sex: ${data.sex}
+    • Height: ${data.height}cm
+    • Weight: ${data.weight}kg
+
+💪 Lifestyle & Diet 
+    • Activity: ${data.activityLevel}
+    • Diet: ${data.dietType}
+    ${data.dietaryRestrictions?.length ? `• Restrictions: ${data.dietaryRestrictions.join(', ')}` : '• Restrictions: None'}
+
+❤️ Health Status 
+    • Concerns: ${data.healthConcerns.join(', ')}
+    ${data.medicalConditions ? `• Medical: ${data.medicalConditions}` : '• Medical: None'}
+    ${data.medications ? `• Medications: ${data.medications}` : '• Medications: None'}
+
+💊 Current Supplements 
+    • Current: ${data.currentSupplements || 'None'}
+    ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}` : '• Goals: None'}`;
   };
 
   // Update the formatAIMessage function
@@ -1026,13 +1014,15 @@ IMPORTANT NOTES:
                             </button>
                           </div>
                         )}
-                        {message.sender === 'ai' ? (
-                          <div className="space-y-3">
-                            {formatAIMessage(message.text)}
-                          </div>
-                        ) : (
-                          <pre className="font-sans whitespace-pre-wrap">{message.text}</pre>
-                        )}
+                        <div className="markdown-content">
+                          {message.sender === 'ai' ? (
+                            <ReactMarkdown>
+                              {message.text}
+                            </ReactMarkdown>
+                          ) : (
+                            <pre className="font-sans whitespace-pre-wrap">{message.text}</pre>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center mt-1 space-x-2">
                         <div className={`text-xs text-gray-500 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
