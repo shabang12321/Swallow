@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import ScrollToTop from './components/ScrollToTop';
+import FeedbackButton from './components/FeedbackButton';
 import Home from './pages/Home';
 import Chat from './pages/Chat';
 import Plans from './pages/Plans';
@@ -23,6 +24,7 @@ function App() {
             <Route path="/faq" element={<FAQPage />} />
           </Routes>
         </main>
+        <FeedbackButton />
       </div>
     </Router>
   );
