@@ -78,12 +78,12 @@ const FeedbackButton = () => {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Share Your Feedback
+                  Super Appreciative of all Feedback!
                 </h2>
                 <textarea
                   id="message"
                   name="message"
-                  placeholder="Tell us what you think about Swallow Hero..."
+                  placeholder="We appreciate any feedback that helps us make Swallow Hero better for everyone..."
                   className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-200 focus:border-sky-500 resize-none"
                   disabled={state.submitting}
                 />

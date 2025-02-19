@@ -10,20 +10,20 @@ const FAQSection = ({ title, faqs }) => {
 
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2>
-      <div className="space-y-3">
+      <h2 className="text-2xl font-bold hero-gradient mb-6">{title}</h2>
+      <div className="space-y-4">
         {faqs.map((faq, index) => (
           <div
             key={index}
-            className="border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md"
+            className="border border-gray-200 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg"
           >
             <button
               onClick={() => toggleQuestion(index)}
               className="w-full px-6 py-4 text-left flex justify-between items-center bg-white hover:bg-gray-50 transition-colors duration-200"
             >
-              <span className="font-medium text-gray-900 pr-8">{faq.question}</span>
+              <span className="font-medium text-gray-900 pr-8 text-lg">{faq.question}</span>
               <svg
-                className={`w-5 h-5 text-gray-500 transform transition-transform duration-200 flex-shrink-0 ${
+                className={`w-6 h-6 text-sky-500 transform transition-transform duration-200 flex-shrink-0 ${
                   openIndex === index ? 'rotate-180' : ''
                 }`}
                 fill="none"
@@ -34,8 +34,8 @@ const FAQSection = ({ title, faqs }) => {
               </svg>
             </button>
             {openIndex === index && (
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <p className="text-gray-600">{faq.answer}</p>
+              <div className="px-6 py-4 bg-gradient-to-br from-sky-50/50 to-teal-50/50 border-t border-gray-200">
+                <p className="text-gray-600 text-lg leading-relaxed">{faq.answer}</p>
               </div>
             )}
           </div>
@@ -121,30 +121,38 @@ const FAQPage = () => {
   return (
     <div className="flex-1">
       <div className="bg-gradient-to-br from-sky-50 to-emerald-50 min-h-screen py-12 px-4">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-xl shadow-xl p-8">
             <header className="text-center mb-12">
-              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-teal-500">
+              <h1 className="text-4xl md:text-5xl font-bold hero-gradient mb-6">
                 Frequently Asked Questions
               </h1>
-              <p className="text-gray-600 mt-4">
+              <p className="text-xl text-gray-600 mt-4">
                 Find answers to common questions about Swallow Hero AI and supplement recommendations
               </p>
             </header>
 
-            {Object.values(faqData).map((section, index) => (
-              <FAQSection key={index} title={section.title} faqs={section.faqs} />
-            ))}
+            <div className="space-y-8">
+              {Object.values(faqData).map((section, index) => (
+                <FAQSection key={index} title={section.title} faqs={section.faqs} />
+              ))}
+            </div>
 
-            <footer className="mt-12 pt-8 border-t border-gray-200">
-              <p className="text-center text-gray-600">
+            <footer className="mt-16 pt-8 border-t border-gray-200">
+              <p className="text-center text-lg text-gray-600">
                 Still have questions?{' '}
-                <Link to="/chat" className="text-sky-500 hover:text-sky-600 font-medium">
+                <Link to="/chat" className="text-sky-500 hover:text-sky-600 font-medium inline-flex items-center hover:gap-1 transition-all duration-200">
                   Chat with our AI support
-                </Link>{' '}
-                or{' '}
-                <button className="text-sky-500 hover:text-sky-600 font-medium">
+                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+                {' '}or{' '}
+                <button className="text-sky-500 hover:text-sky-600 font-medium inline-flex items-center hover:gap-1 transition-all duration-200">
                   contact our team
+                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </p>
             </footer>

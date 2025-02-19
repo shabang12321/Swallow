@@ -1,5 +1,6 @@
 import React from 'react';
 import SubscriptionPlans from '../components/SubscriptionPlans';
+import { Link } from 'react-router-dom';
 
 const Plans = () => {
   return (
@@ -68,6 +69,25 @@ const Plans = () => {
             <h3 className="text-lg font-semibold mb-2">Is there a free trial?</h3>
             <p className="text-gray-600">Yes, you can try our basic features for free to see if Swallow Hero is right for you.</p>
           </div>
+        </div>
+        <div className="text-center mt-8">
+          <Link 
+            to="/faq" 
+            className="inline-flex items-center px-6 py-3 text-lg font-medium text-white 
+                     bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 
+                     rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 
+                     transition-all duration-200 group"
+          >
+            View All FAQs
+            <svg 
+              className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
       </div>
     </div>

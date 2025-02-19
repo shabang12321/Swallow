@@ -91,9 +91,20 @@ const QUESTIONNAIRE_STEPS = [
     fields: [
       { 
         name: 'healthConcerns', 
-        label: 'Current Health Concerns', 
+        label: 'Areas You Want to Improve', 
+        description: 'Select the areas of your health and wellness that you would like to enhance with supplements',
         type: 'multiselect',
-        options: ['Energy Levels', 'Sleep Quality', 'Joint Health', 'Digestive Issues', 'Immune Support', 'Stress Management', 'Weight loss', 'Muscle Building', 'Other'],
+        options: [
+          'Energy & Vitality',
+          'Sleep & Relaxation',
+          'Joint & Mobility',
+          'Digestive Health',
+          'Immune System',
+          'Stress & Mood',
+          'Weight Management',
+          'Muscle & Strength',
+          'Other'
+        ],
         required: true 
       },
       { 
@@ -826,7 +837,7 @@ IMPORTANT NOTES:
               Welcome to Swallow Hero AI
             </h1>
             <p className="text-xl text-gray-600 mt-4 mb-8">
-              Answer 5 multiple choice questions and live better!
+              Answer 10 short questions and live better!
             </p>
             <div className="space-y-6 mb-16">
               <div className="flex items-center space-x-4 text-gray-600">
@@ -903,14 +914,14 @@ IMPORTANT NOTES:
   if (showQuestionnaire) {
     const currentStepData = QUESTIONNAIRE_STEPS[currentStep];
     return (
-      <div className="h-screen w-full flex flex-col bg-white">
-        {/* Title Section */}
-        <div className="py-3 px-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-900">Health Profile Questionnaire</h1>
+      <div className="fixed inset-0 top-16 flex flex-col bg-white">
+        {/* Title Section - Fixed height */}
+        <div className="py-3 px-4 border-b border-gray-200 flex-none">
+          <h1 className="text-xl font-bold text-gray-900 text-center">Health Profile Questionnaire</h1>
         </div>
 
-        {/* Progress Bar */}
-        <div className="px-4 py-2 border-b border-gray-100">
+        {/* Progress Bar - Fixed height */}
+        <div className="px-4 py-2 border-b border-gray-100 flex-none">
           <div className="flex justify-between mb-1">
             {QUESTIONNAIRE_STEPS.map((step, index) => (
               <div
@@ -926,23 +937,25 @@ IMPORTANT NOTES:
           </p>
         </div>
 
-        {/* Questionnaire Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-4 py-4">
-            <QuestionnaireStep
-              step={currentStepData}
-              formData={formData}
-              onChange={handleFormChange}
-              onNext={() => {
-                if (currentStep === QUESTIONNAIRE_STEPS.length - 1) {
-                  handleQuestionnaireComplete();
-                } else {
-                  setCurrentStep(prev => prev + 1);
-                }
-              }}
-              onBack={currentStep > 0 ? () => setCurrentStep(prev => prev - 1) : null}
-              isLastStep={currentStep === QUESTIONNAIRE_STEPS.length - 1}
-            />
+        {/* Questionnaire Content - Scrollable container */}
+        <div className="flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto px-4 py-4">
+            <div className="max-w-2xl mx-auto">
+              <QuestionnaireStep
+                step={currentStepData}
+                formData={formData}
+                onChange={handleFormChange}
+                onNext={() => {
+                  if (currentStep === QUESTIONNAIRE_STEPS.length - 1) {
+                    handleQuestionnaireComplete();
+                  } else {
+                    setCurrentStep(prev => prev + 1);
+                  }
+                }}
+                onBack={currentStep > 0 ? () => setCurrentStep(prev => prev - 1) : null}
+                isLastStep={currentStep === QUESTIONNAIRE_STEPS.length - 1}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -950,114 +963,116 @@ IMPORTANT NOTES:
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white pt-16">
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto pb-16">
-        {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center max-w-xl px-4">
-              <p className="text-lg mb-3 font-semibold text-gray-700">👋 Welcome! How can I help with your supplement needs?</p>
-              <div className="space-y-4">
-                <div className="space-y-2 text-gray-600 text-sm">
-                  <p>"I want to improve my energy levels"</p>
-                  <p>"What supplements are good for joint health?"</p>
-                  <p>"I need help with my sleep quality"</p>
-                </div>
-                <div className="pt-4 border-t border-gray-200">
-                  <Link 
-                    to="/faq"
-                    className="text-sky-500 hover:text-sky-600 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
-                  >
-                    <span>View Frequently Asked Questions</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
+    <div className="fixed inset-0 top-16 flex flex-col bg-white">
+      {/* Chat Messages - Make messages scroll within container */}
+      <div className="flex-1 min-h-0">
+        <div className="h-full overflow-y-auto">
+          {messages.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center max-w-xl px-4">
+                <p className="text-lg mb-3 font-semibold text-gray-700">👋 Welcome! How can I help with your supplement needs?</p>
+                <div className="space-y-4">
+                  <div className="space-y-2 text-gray-600 text-sm">
+                    <p>"I want to improve my energy levels"</p>
+                    <p>"What supplements are good for joint health?"</p>
+                    <p>"I need help with my sleep quality"</p>
+                  </div>
+                  <div className="pt-4 border-t border-gray-200">
+                    <Link 
+                      to="/faq"
+                      className="text-sky-500 hover:text-sky-600 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
+                    >
+                      <span>View Frequently Asked Questions</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="min-h-full">
-            <div className="max-w-3xl mx-auto px-4 py-4 space-y-6">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className="max-w-[85%] sm:max-w-[75%]">
-                    <div
-                      className={`relative group rounded-2xl px-4 py-3 ${
-                        message.sender === 'user'
-                          ? 'bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-tr-none'
-                          : 'bg-gray-100 text-gray-800 rounded-tl-none'
-                      }`}
-                    >
-                      {message.sender === 'ai' && (
-                        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => copyToClipboard(message.text, index)}
-                            className="p-1 hover:bg-gray-200 rounded-full transition-colors"
-                            title="Copy message"
-                          >
-                            {copiedMessageId === index ? (
-                              <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                              </svg>
-                            )}
-                          </button>
-                        </div>
-                      )}
-                      {message.sender === 'ai' ? (
-                        <div className="space-y-3">
-                          {formatAIMessage(message.text)}
-                        </div>
-                      ) : (
-                        <pre className="font-sans whitespace-pre-wrap">{message.text}</pre>
-                      )}
-                    </div>
-                    <div className="flex items-center mt-1 space-x-2">
-                      <div className={`text-xs text-gray-500 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                        {formatTimestamp(message.timestamp)}
-                      </div>
-                      {message.sender === 'ai' && (
-                        <div className="flex space-x-1">
-                          {['👍', '❤️', '🎯'].map((reaction) => (
+          ) : (
+            <div className="h-full">
+              <div className="max-w-3xl mx-auto px-4 py-4 space-y-6">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className="max-w-[85%] sm:max-w-[75%]">
+                      <div
+                        className={`relative group rounded-2xl px-4 py-3 ${
+                          message.sender === 'user'
+                            ? 'bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-tr-none'
+                            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                        }`}
+                      >
+                        {message.sender === 'ai' && (
+                          <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                              key={reaction}
-                              onClick={() => handleReaction(index, reaction)}
-                              className={`text-xs p-1 rounded-full transition-transform hover:scale-125 ${
-                                messageReactions[index] === reaction ? 'bg-gray-100' : ''
-                              }`}
+                              onClick={() => copyToClipboard(message.text, index)}
+                              className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                              title="Copy message"
                             >
-                              {reaction}
+                              {copiedMessageId === index ? (
+                                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                              ) : (
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                              )}
                             </button>
-                          ))}
+                          </div>
+                        )}
+                        {message.sender === 'ai' ? (
+                          <div className="space-y-3">
+                            {formatAIMessage(message.text)}
+                          </div>
+                        ) : (
+                          <pre className="font-sans whitespace-pre-wrap">{message.text}</pre>
+                        )}
+                      </div>
+                      <div className="flex items-center mt-1 space-x-2">
+                        <div className={`text-xs text-gray-500 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                          {formatTimestamp(message.timestamp)}
                         </div>
-                      )}
+                        {message.sender === 'ai' && (
+                          <div className="flex space-x-1">
+                            {['👍', '❤️', '🎯'].map((reaction) => (
+                              <button
+                                key={reaction}
+                                onClick={() => handleReaction(index, reaction)}
+                                className={`text-xs p-1 rounded-full transition-transform hover:scale-125 ${
+                                  messageReactions[index] === reaction ? 'bg-gray-100' : ''
+                                }`}
+                              >
+                                {reaction}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-2.5">
-                    <div className="flex space-x-2">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                ))}
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-2.5">
+                      <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+                )}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Input Form - Fixed at bottom */}
