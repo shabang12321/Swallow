@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './config/firebase';
 import Navigation from './components/Navigation';
@@ -10,6 +10,17 @@ import Loading from './components/Loading';
 import About from './pages/About';
 import Plans from './pages/Plans';
 import Home from './pages/Home';
+
+// Scroll to top component
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 // Protected Chat Route - Only this needs auth
 const ProtectedChatRoute = () => {
@@ -87,6 +98,7 @@ const App = () => {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen flex flex-col">
         {/* Navigation with auth button */}
         <Navigation onAuthClick={() => setShowAuthModal(true)} />
