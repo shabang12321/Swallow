@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { RecaptchaVerifier } from 'firebase/auth';
 import { 
   auth, 
   signInWithGoogle, 
-  signInWithPhone, 
   signUpWithEmail,
   signInWithEmail,
   logOut 
@@ -12,17 +10,12 @@ import {
 
 const Auth = ({ onClose }) => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [authMethod, setAuthMethod] = useState('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [verificationId, setVerificationId] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const recaptchaContainerRef = useRef(null);
   const modalRef = useRef(null);
 
   // Handle escape key
@@ -48,20 +41,6 @@ const Auth = ({ onClose }) => {
     onClose();
   };
 
-  useEffect(() => {
-    // Cleanup previous reCAPTCHA instance
-    if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-      window.recaptchaVerifier = null;
-    }
-
-    // Reset states when changing auth method
-    setVerificationId('');
-    setVerificationCode('');
-    setError('');
-    setSuccessMessage('');
-  }, [authMethod]);
-
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
@@ -69,71 +48,6 @@ const Auth = ({ onClose }) => {
 
   const validatePassword = (password) => {
     return password.length >= 6;
-  };
-
-  const formatPhoneNumber = (input) => {
-    // Remove all non-digit characters except +
-    let cleaned = input.replace(/[^\d+]/g, '');
-    
-    // Ensure it starts with +
-    if (!cleaned.startsWith('+')) {
-      cleaned = '+' + cleaned;
-    }
-    
-    // Format US numbers specially
-    if (cleaned.startsWith('+1') && cleaned.length > 2) {
-      const match = cleaned.match(/^\+1(\d{0,3})(\d{0,3})(\d{0,4})$/);
-      if (match) {
-        const [, area, prefix, line] = match;
-        let formatted = '+1';
-        if (area) formatted += ` (${area}`;
-        if (prefix) formatted += `) ${prefix}`;
-        if (line) formatted += `-${line}`;
-        return formatted;
-      }
-    }
-    
-    return cleaned;
-  };
-
-  const validatePhoneNumber = (phone) => {
-    // Remove formatting for validation
-    const cleaned = phone.replace(/[^\d+]/g, '');
-    // Basic international phone format: + followed by 7-15 digits
-    const re = /^\+\d{7,15}$/;
-    return re.test(cleaned);
-  };
-
-  const handlePhoneNumberChange = (e) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setPhoneNumber(formatted);
-  };
-
-  const setupRecaptcha = () => {
-    try {
-      if (!window.recaptchaVerifier && recaptchaContainerRef.current) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
-          size: 'normal',
-          callback: () => {
-            setError('');
-            setSuccessMessage('reCAPTCHA verified successfully');
-          },
-          'expired-callback': () => {
-            setError('reCAPTCHA expired. Please try again.');
-            if (window.recaptchaVerifier) {
-              window.recaptchaVerifier.clear();
-              window.recaptchaVerifier = null;
-            }
-          }
-        });
-        return window.recaptchaVerifier.render();
-      }
-      return window.recaptchaVerifier;
-    } catch (err) {
-      console.error('reCAPTCHA setup error:', err);
-      setError('Error setting up verification. Please try again.');
-      return null;
-    }
   };
 
   const handleEmailAuth = async (e) => {
@@ -177,49 +91,6 @@ const Auth = ({ onClose }) => {
     }
   };
 
-  const handlePhoneAuth = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccessMessage('');
-
-    if (!validatePhoneNumber(phoneNumber)) {
-      setError('Please enter a valid phone number (e.g., +1234567890)');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      if (!verificationId) {
-        const verifier = setupRecaptcha();
-        if (!verifier) {
-          throw new Error('Failed to set up verification');
-        }
-        const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
-        const confirmationResult = await signInWithPhone(formattedPhone, verifier);
-        setVerificationId(confirmationResult.verificationId);
-        setSuccessMessage('Verification code sent successfully!');
-      } else {
-        if (!verificationCode || verificationCode.length < 6) {
-          setError('Please enter a valid verification code');
-          return;
-        }
-        const credential = auth.PhoneAuthProvider.credential(verificationId, verificationCode);
-        await auth.signInWithCredential(credential);
-        handleAuthSuccess();
-      }
-    } catch (err) {
-      console.error('Phone auth error:', err);
-      setError(err.message.replace('Firebase:', '').trim() || 'Failed to authenticate. Please try again.');
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleGoogleAuth = async () => {
     setError('');
     setSuccessMessage('');
@@ -243,7 +114,7 @@ const Auth = ({ onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
       <div 
@@ -261,8 +132,18 @@ const Auth = ({ onClose }) => {
           </svg>
         </button>
 
+        {/* Logo and Company Name */}
+        <div className="flex flex-col items-center mb-6">
+          <img 
+            src={require('../assets/logo.png')} 
+            alt="Swallow Hero Logo" 
+            className="w-16 h-16 mb-3"
+          />
+          <span className="text-2xl font-bold hero-gradient">Swallow Hero</span>
+        </div>
+
         <div className="text-center">
-          <h2 className="text-3xl font-extrabold hero-gradient mx-auto inline-block">
+          <h2 className="text-2xl font-bold text-gray-900">
             {isSignUp ? 'Create your account' : 'Welcome back!'}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -313,168 +194,68 @@ const Auth = ({ onClose }) => {
         )}
 
         <div className="mt-8 space-y-6">
-          {/* Auth Method Selector */}
-          <div className="flex justify-center space-x-4">
-            <button
-              onClick={() => setAuthMethod('email')}
-              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
-                authMethod === 'email' 
-                  ? 'bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Email
-            </button>
-            <button
-              onClick={() => setAuthMethod('phone')}
-              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
-                authMethod === 'phone' 
-                  ? 'bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Phone
-            </button>
-          </div>
-
           {/* Email/Password Form */}
-          {authMethod === 'email' && (
-            <form onSubmit={handleEmailAuth} className="mt-8 space-y-4">
+          <form onSubmit={handleEmailAuth} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
+                placeholder="••••••••"
+              />
+            </div>
+            {isSignUp && (
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email address
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                  Confirm Password
                 </label>
                 <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <input
-                  id="password"
+                  id="confirmPassword"
                   type="password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
                   placeholder="••••••••"
                 />
               </div>
-              {isSignUp && (
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                    Confirm Password
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-              )}
-              <div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 hover:from-sky-600 hover:via-teal-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
-                >
-                  {loading ? (
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : null}
-                  {loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* Phone Auth Form */}
-          {authMethod === 'phone' && (
-            <form onSubmit={handlePhoneAuth} className="mt-8 space-y-4">
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                  Phone Number
-                </label>
-                <div className="mt-1 relative rounded-lg shadow-sm">
-                  <input
-                    id="phone"
-                    type="tel"
-                    required
-                    value={phoneNumber}
-                    onChange={handlePhoneNumberChange}
-                    className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
-                    placeholder="+1 (555) 555-5555"
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  Enter your full phone number including country code (e.g., +1 for US)
-                </p>
-              </div>
-
-              {verificationId && (
-                <div>
-                  <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-                    Verification Code
-                  </label>
-                  <input
-                    id="code"
-                    type="text"
-                    required
-                    value={verificationCode}
-                    onChange={(e) => {
-                      // Only allow digits and limit to 6 characters
-                      const cleaned = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setVerificationCode(cleaned);
-                    }}
-                    className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
-                    placeholder="Enter 6-digit code"
-                    maxLength="6"
-                    pattern="\d{6}"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Enter the 6-digit code sent to your phone
-                  </p>
-                </div>
-              )}
-
-              {/* reCAPTCHA container */}
-              <div ref={recaptchaContainerRef} className="flex justify-center py-2"></div>
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={loading || (verificationId && verificationCode.length !== 6)}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 hover:from-sky-600 hover:via-teal-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
-                >
-                  {loading ? (
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : null}
-                  {loading 
-                    ? 'Processing...' 
-                    : verificationId 
-                      ? 'Verify Code' 
-                      : 'Send Verification Code'}
-                </button>
-              </div>
-            </form>
-          )}
+            )}
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 hover:from-sky-600 hover:via-teal-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+              >
+                {loading ? (
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : null}
+                {loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
+              </button>
+            </div>
+          </form>
 
           {/* Divider */}
           <div className="relative">

@@ -2,9 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { 
   getAuth, 
   GoogleAuthProvider, 
-  PhoneAuthProvider, 
   signInWithPopup, 
-  signInWithPhoneNumber, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut, 
@@ -48,7 +46,6 @@ isSupported().then(supported => {
 
 // Initialize providers
 export const googleProvider = new GoogleAuthProvider();
-export const phoneProvider = new PhoneAuthProvider(auth);
 
 // Enhanced auth functions with error handling
 export const signInWithGoogle = async () => {
@@ -57,15 +54,6 @@ export const signInWithGoogle = async () => {
     return result.user;
   } catch (error) {
     console.error('Google sign-in error:', error);
-    throw error;
-  }
-};
-
-export const signInWithPhone = async (phoneNumber, appVerifier) => {
-  try {
-    return await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-  } catch (error) {
-    console.error('Phone sign-in error:', error);
     throw error;
   }
 };
