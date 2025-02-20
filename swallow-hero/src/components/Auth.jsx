@@ -18,7 +18,7 @@ const Auth = ({ onClose }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const modalRef = useRef(null);
 
-  // Handle escape key
+  // Handle escape key and body scroll lock
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -26,11 +26,18 @@ const Auth = ({ onClose }) => {
       }
     };
 
+    // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
+
     document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      // Re-enable scrolling when component unmounts
+      document.body.style.overflow = 'unset';
+    };
   }, [onClose]);
 
-  // Close modal when clicking outside
+  // Handle outside clicks
   const handleOutsideClick = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       onClose();
@@ -106,22 +113,15 @@ const Auth = ({ onClose }) => {
     }
   };
 
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
     <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 overflow-y-auto"
-      onClick={handleBackdropClick}
-      style={{ paddingTop: '5rem' }}
+      className="fixed inset-0 bg-black/50 z-50 overflow-y-auto"
+      onClick={handleOutsideClick}
     >
-      <div className="min-h-full flex items-center justify-center p-4">
+      <div className="min-h-screen px-4 text-center flex items-center justify-center">
         <div 
           ref={modalRef}
-          className="relative bg-white rounded-xl shadow-xl p-8 space-y-8 w-full max-w-md my-8"
+          className="relative bg-white w-full max-w-md rounded-xl shadow-xl p-8 space-y-8 my-8 overflow-y-auto max-h-[90vh]"
           onClick={e => e.stopPropagation()}
         >
           {/* Close button */}
