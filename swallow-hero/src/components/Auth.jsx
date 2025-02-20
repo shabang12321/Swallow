@@ -114,12 +114,12 @@ const Auth = ({ onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 overflow-y-auto"
       onClick={handleBackdropClick}
     >
       <div 
         ref={modalRef}
-        className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 space-y-8 relative"
+        className="relative bg-white rounded-xl shadow-xl p-8 space-y-8 my-8 max-w-md w-full"
         onClick={e => e.stopPropagation()}
       >
         {/* Close button */}
