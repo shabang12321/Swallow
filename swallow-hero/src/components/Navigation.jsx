@@ -144,79 +144,86 @@ const Navigation = ({ onAuthClick }) => {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="lg:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg">
-            <Link 
-              to="/" 
-              className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
-                isActive('/') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
-              }`}
-              onClick={handleLinkClick}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/chat" 
-              className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
-                isActive('/chat') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
-              }`}
-              onClick={handleLinkClick}
-            >
-              AI Chat
-            </Link>
-            <Link 
-              to="/faq" 
-              className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
-                isActive('/faq') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
-              }`}
-              onClick={handleLinkClick}
-            >
-              FAQ
-            </Link>
-            <Link 
-              to="/plans" 
-              className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
-                isActive('/plans') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
-              }`}
-              onClick={handleLinkClick}
-            >
-              Plans
-            </Link>
-            <Link 
-              to="/about" 
-              className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
-                isActive('/about') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
-              }`}
-              onClick={handleLinkClick}
-            >
-              About
-            </Link>
-
-            {!user ? (
-              <button
-                onClick={() => {
-                  onAuthClick();
-                  handleLinkClick();
-                }}
-                className="w-full mt-4 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 rounded-lg hover:from-sky-600 hover:via-teal-600 hover:to-green-600 transition-all duration-200"
+        <>
+          {/* Overlay to handle outside clicks */}
+          <div 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden" 
+            onClick={() => setIsMenuOpen(false)}
+          />
+          <div className="lg:hidden relative z-50">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg">
+              <Link 
+                to="/" 
+                className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
+                  isActive('/') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={handleLinkClick}
               >
-                Sign In
-              </button>
-            ) : (
-              <div className="border-t border-gray-200 mt-4 pt-4 text-center">
-                <div className="px-4 py-2 text-sm text-gray-700">
-                  Signed in as: {user.email}
-                </div>
+                Home
+              </Link>
+              <Link 
+                to="/chat" 
+                className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
+                  isActive('/chat') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={handleLinkClick}
+              >
+                AI Chat
+              </Link>
+              <Link 
+                to="/faq" 
+                className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
+                  isActive('/faq') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={handleLinkClick}
+              >
+                FAQ
+              </Link>
+              <Link 
+                to="/plans" 
+                className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
+                  isActive('/plans') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={handleLinkClick}
+              >
+                Plans
+              </Link>
+              <Link 
+                to="/about" 
+                className={`block px-3 py-2 rounded-md text-base font-medium text-center ${
+                  isActive('/about') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={handleLinkClick}
+              >
+                About
+              </Link>
+
+              {!user ? (
                 <button
-                  onClick={handleSignOut}
-                  className="w-full mt-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() => {
+                    onAuthClick();
+                    handleLinkClick();
+                  }}
+                  className="w-full mt-4 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 rounded-lg hover:from-sky-600 hover:via-teal-600 hover:to-green-600 transition-all duration-200"
                 >
-                  Sign Out
+                  Sign In
                 </button>
-              </div>
-            )}
+              ) : (
+                <div className="border-t border-gray-200 mt-4 pt-4 text-center">
+                  <div className="px-4 py-2 text-sm text-gray-700">
+                    Signed in as: {user.email}
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full mt-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </nav>
   );
