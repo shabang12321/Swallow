@@ -10,6 +10,8 @@ import Loading from './components/Loading';
 import About from './pages/About';
 import Plans from './pages/Plans';
 import Home from './pages/Home';
+import ClickSpark from './components/ClickSpark';
+import BackgroundParticles from './components/BackgroundParticles';
 
 // Scroll to top component
 const ScrollToTop = () => {
@@ -33,7 +35,7 @@ const ProtectedChatRoute = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-sky-50 to-blue-50 p-4">
+      <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-8 text-center">
           <h2 className="text-2xl font-bold mb-4 hero-gradient">Authentication Required</h2>
           <p className="text-gray-600 mb-6">
@@ -48,7 +50,7 @@ const ProtectedChatRoute = () => {
             </button>
             <button
               onClick={() => window.history.back()}
-              className="block w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="block w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100/80 backdrop-blur-sm rounded-lg hover:bg-gray-200/80 transition-colors"
             >
               Go Back
             </button>
@@ -77,8 +79,8 @@ const App = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-red-600 mb-4">Error</h2>
           <p className="text-gray-700">{error.message}</p>
           <button
@@ -99,12 +101,22 @@ const App = () => {
   return (
     <Router>
       <ScrollToTop />
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col relative bg-gradient-to-br from-sky-50 to-emerald-50">
+        <BackgroundParticles />
+        <ClickSpark
+          sparkColor="rgba(14, 165, 233, 0.95)"
+          sparkSize={10}
+          sparkRadius={15}
+          sparkCount={12}
+          duration={400}
+          easing="ease-out"
+          extraScale={1}
+        />
         {/* Navigation with auth button */}
         <Navigation onAuthClick={() => setShowAuthModal(true)} />
         
         {/* Main content */}
-        <div className="flex-1">
+        <div className="flex-1 relative z-10">
           <Routes>
             {/* Public routes - Freely accessible without auth */}
             <Route path="/" element={<Home />} />

@@ -14,6 +14,40 @@ body {
   @apply bg-gradient-to-br from-sky-50 to-emerald-50;
 }
 
+/* Improve text contrast for regular content */
+p, li, span, div {
+  @apply text-gray-700;  /* Darker than text-gray-600 for better contrast */
+}
+
+/* Specific styles for text in cards, boxes, and modals */
+.card p,
+.card li,
+[class*="bg-white"] p,
+[class*="bg-white"] li,
+[class*="bg-gray-50"] p,
+[class*="bg-gray-50"] li,
+[class*="backdrop-blur"] p,
+[class*="backdrop-blur"] li {
+  @apply text-gray-800;  /* Even darker for better contrast on white/light backgrounds */
+}
+
+/* Feature descriptions and similar content in cards */
+.card .text-gray-600,
+[class*="bg-white"] .text-gray-600,
+[class*="backdrop-blur"] .text-gray-600 {
+  @apply text-gray-800;
+}
+
+/* Keep headings and titles with their existing styles */
+h1, h2, h3, h4, h5, h6 {
+  @apply text-gray-900;
+}
+
+/* Ensure links remain visible but distinct */
+a:not(.btn-primary):not(.nav-link) {
+  @apply text-sky-700 hover:text-sky-800;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
@@ -33,12 +67,67 @@ code {
   display: inline-block;
 }
 
+/* Primary button with gradient */
 .btn-primary {
-  @apply px-4 py-2 rounded-md text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 transition-colors;
+  @apply px-6 py-3 rounded-xl text-base font-medium text-white 
+         bg-gradient-to-r from-sky-500 to-sky-600
+         hover:from-sky-600 hover:to-sky-700
+         transition-all duration-300 transform hover:-translate-y-0.5
+         shadow-md hover:shadow-lg
+         inline-flex items-center justify-center gap-2
+         text-white;
+}
+
+/* Secondary button style */
+.btn-secondary {
+  @apply px-6 py-3 rounded-xl text-base font-medium text-white
+         bg-gradient-to-r from-gray-600 to-gray-700
+         hover:from-gray-700 hover:to-gray-800
+         transition-all duration-300 transform hover:-translate-y-0.5
+         shadow-sm hover:shadow-md
+         inline-flex items-center justify-center gap-2;
+}
+
+/* Outline button style (for ghost/transparent buttons) */
+.btn-outline {
+  @apply px-6 py-3 rounded-xl text-base font-medium text-gray-700
+         bg-white border border-gray-300
+         hover:bg-gray-50 hover:border-gray-400
+         transition-all duration-300 transform hover:-translate-y-0.5
+         shadow-sm hover:shadow-md
+         inline-flex items-center justify-center gap-2;
+}
+
+/* Small button variant */
+.btn-sm {
+  @apply px-4 py-2 text-sm rounded-lg;
+}
+
+/* Large button variant */
+.btn-lg {
+  @apply px-8 py-4 text-lg rounded-xl;
+}
+
+/* Full width button variant */
+.btn-full {
+  @apply w-full;
+}
+
+/* Icon styles for buttons */
+.btn-primary svg.icon-right,
+.btn-secondary svg.icon-right,
+.btn-outline svg.icon-right {
+  @apply transition-transform duration-300 ml-1;
+}
+
+.btn-primary:hover svg.icon-right,
+.btn-secondary:hover svg.icon-right,
+.btn-outline:hover svg.icon-right {
+  @apply translate-x-1;
 }
 
 .card {
-  @apply bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 
+  @apply bg-white/95 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 
          border border-gray-100 overflow-hidden;
 }
 
@@ -48,27 +137,27 @@ code {
 }
 
 .nav-link {
-  @apply px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-sky-600 hover:bg-sky-50 transition-colors;
+  @apply px-3 py-2 rounded-md text-sm font-medium text-gray-700 
+         hover:text-sky-600 hover:bg-sky-50
+         transition-all duration-300;
 }
 
-/* Secondary button style */
-.btn-secondary {
-  @apply px-6 py-3 text-gray-700 rounded-lg border border-gray-300 
-         hover:border-sky-500 hover:text-sky-600 hover:bg-sky-50 transition-all duration-200;
+.nav-link.active {
+  @apply text-sky-600 bg-sky-50;
 }
 
 /* Add these if not already present */
 .faq-question {
-  @apply transition-colors duration-200;
+  @apply transition-colors duration-200 text-gray-800;
 }
 
 .faq-answer {
-  @apply transition-all duration-200;
+  @apply transition-all duration-200 text-gray-800;
 }
 
 /* Markdown Styling */
 .markdown-content {
-    color: inherit;
+    @apply text-gray-800;
 }
 
 /* Make only the main headers and supplement names use the gradient */

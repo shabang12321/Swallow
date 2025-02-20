@@ -51,35 +51,35 @@ const Navigation = ({ onAuthClick }) => {
           <div className="hidden lg:flex lg:items-center lg:space-x-1">
             <Link 
               to="/" 
-              className={`nav-link ${isActive('/') ? 'bg-sky-50 text-sky-600' : ''}`}
+              className={`nav-link ${isActive('/') ? 'active' : ''}`}
               onClick={handleLinkClick}
             >
               Home
             </Link>
             <Link 
               to="/chat" 
-              className={`nav-link ${isActive('/chat') ? 'bg-sky-50 text-sky-600' : ''}`}
+              className={`nav-link ${isActive('/chat') ? 'active' : ''}`}
               onClick={handleLinkClick}
             >
               AI Chat
             </Link>
             <Link 
               to="/faq" 
-              className={`nav-link ${isActive('/faq') ? 'bg-sky-50 text-sky-600' : ''}`}
+              className={`nav-link ${isActive('/faq') ? 'active' : ''}`}
               onClick={handleLinkClick}
             >
               FAQ
             </Link>
             <Link 
               to="/plans" 
-              className={`nav-link ${isActive('/plans') ? 'bg-sky-50 text-sky-600' : ''}`}
+              className={`nav-link ${isActive('/plans') ? 'active' : ''}`}
               onClick={handleLinkClick}
             >
               Plans
             </Link>
             <Link 
               to="/about" 
-              className={`nav-link ${isActive('/about') ? 'bg-sky-50 text-sky-600' : ''}`}
+              className={`nav-link ${isActive('/about') ? 'active' : ''}`}
               onClick={handleLinkClick}
             >
               About
@@ -149,7 +149,7 @@ const Navigation = ({ onAuthClick }) => {
             <Link 
               to="/" 
               className={`block px-3 py-2 rounded-md text-base font-medium ${
-                isActive('/') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                isActive('/') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
               }`}
               onClick={handleLinkClick}
             >
@@ -158,7 +158,7 @@ const Navigation = ({ onAuthClick }) => {
             <Link 
               to="/chat" 
               className={`block px-3 py-2 rounded-md text-base font-medium ${
-                isActive('/chat') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                isActive('/chat') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
               }`}
               onClick={handleLinkClick}
             >
@@ -167,7 +167,7 @@ const Navigation = ({ onAuthClick }) => {
             <Link 
               to="/faq" 
               className={`block px-3 py-2 rounded-md text-base font-medium ${
-                isActive('/faq') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                isActive('/faq') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
               }`}
               onClick={handleLinkClick}
             >
@@ -176,7 +176,7 @@ const Navigation = ({ onAuthClick }) => {
             <Link 
               to="/plans" 
               className={`block px-3 py-2 rounded-md text-base font-medium ${
-                isActive('/plans') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                isActive('/plans') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
               }`}
               onClick={handleLinkClick}
             >
@@ -185,7 +185,7 @@ const Navigation = ({ onAuthClick }) => {
             <Link 
               to="/about" 
               className={`block px-3 py-2 rounded-md text-base font-medium ${
-                isActive('/about') ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                isActive('/about') ? 'text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-green-500/10' : 'text-gray-700 hover:bg-gray-50'
               }`}
               onClick={handleLinkClick}
             >

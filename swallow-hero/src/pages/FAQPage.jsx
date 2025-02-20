@@ -15,11 +15,11 @@ const FAQSection = ({ title, faqs }) => {
         {faqs.map((faq, index) => (
           <div
             key={index}
-            className="border border-gray-200 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg"
+            className="border border-gray-200 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg bg-white/60 backdrop-blur-sm"
           >
             <button
               onClick={() => toggleQuestion(index)}
-              className="w-full px-6 py-4 text-left flex justify-between items-center bg-white hover:bg-gray-50 transition-colors duration-200"
+              className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-white/80 transition-colors duration-200"
             >
               <span className="font-medium text-gray-900 pr-8 text-lg">{faq.question}</span>
               <svg
@@ -120,9 +120,9 @@ const FAQPage = () => {
 
   return (
     <div className="flex-1">
-      <div className="bg-gradient-to-br from-sky-50 to-emerald-50 min-h-screen py-12 px-4">
+      <div className="py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-xl p-8">
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl shadow-xl p-8 hover:shadow-2xl transition-shadow">
             <header className="text-center mb-12">
               <h1 className="text-4xl md:text-5xl font-bold hero-gradient mb-6">
                 Frequently Asked Questions
@@ -139,18 +139,18 @@ const FAQPage = () => {
             </div>
 
             <footer className="mt-16 pt-8 border-t border-gray-200">
-              <p className="text-center text-lg text-gray-600">
+              <p className="text-center text-lg text-gray-700">
                 Still have questions?{' '}
-                <Link to="/chat" className="text-sky-500 hover:text-sky-600 font-medium inline-flex items-center hover:gap-1 transition-all duration-200">
-                  Chat with our AI support
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <Link to="/chat" className="btn-primary btn-sm inline-flex items-center">
+                  Chat with our AI
+                  <svg className="w-4 h-4 icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
                 {' '}or{' '}
-                <button className="text-sky-500 hover:text-sky-600 font-medium inline-flex items-center hover:gap-1 transition-all duration-200">
-                  contact our team
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="btn-secondary btn-sm inline-flex items-center">
+                  Contact our team
+                  <svg className="w-4 h-4 icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-blue-50">
+    <div className="flex-1">
       {/* Hero Section */}
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -20,7 +20,7 @@ const About = () => {
 
           {/* Mission Section */}
           <div className="grid md:grid-cols-2 gap-12 mb-16">
-            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-sm">
+            <div className="bg-white/60 backdrop-blur-sm p-8 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center mb-6">
                 <svg className="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -34,7 +34,7 @@ const About = () => {
                 make informed decisions about your health.
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-sm">
+            <div className="bg-white/60 backdrop-blur-sm p-8 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-6">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -67,7 +67,7 @@ const About = () => {
 
           {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-sm transform hover:scale-105 transition-transform duration-300">
+            <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl shadow-sm transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
               <div className="text-sky-500 mb-4">
                 <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -79,7 +79,7 @@ const About = () => {
                 Our AI analyzes your health profile to provide tailored supplement recommendations.
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-sm transform hover:scale-105 transition-transform duration-300">
+            <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl shadow-sm transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
               <div className="text-teal-500 mb-4">
                 <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -91,7 +91,7 @@ const About = () => {
                 Get instant recommendations and adjust your supplement routine as needed.
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-sm transform hover:scale-105 transition-transform duration-300">
+            <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl shadow-sm transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
               <div className="text-green-500 mb-4">
                 <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -106,7 +106,7 @@ const About = () => {
           </div>
 
           {/* CTA Section */}
-          <div className="text-center bg-white/80 backdrop-blur-sm rounded-xl p-8 shadow-sm">
+          <div className="text-center bg-white/60 backdrop-blur-sm rounded-xl p-8 shadow-sm hover:shadow-lg transition-shadow">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to Start Your Journey?</h2>
             <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
               Join thousands of users who have already discovered their perfect supplement routine with Swallow Hero.
@@ -117,13 +117,18 @@ const About = () => {
                 className="btn-primary"
               >
                 Try AI Chat Now
+                <svg className="w-5 h-5 icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </Link>
               <Link 
                 to="/plans" 
-                className="px-6 py-3 text-gray-700 rounded-lg border border-gray-300 
-                          hover:border-sky-500 hover:text-sky-600 transition-all duration-200"
+                className="btn-outline text-sky-500 hover:text-sky-700"
               >
                 View Plans
+                <svg className="w-5 h-5 icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </Link>
             </div>
           </div>

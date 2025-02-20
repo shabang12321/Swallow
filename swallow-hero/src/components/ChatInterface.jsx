@@ -356,23 +356,21 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
         <button
           type="button"
           onClick={onBack}
-          className={`px-4 py-2 text-gray-600 hover:text-gray-800 flex items-center space-x-2 transition-all duration-200
-            ${!onBack ? 'opacity-0 pointer-events-none' : ''}`}
+          className={`btn-outline btn-sm text-gray-600 ${!onBack ? 'opacity-0 pointer-events-none' : ''}`}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-sm">Back</span>
+          <span>Back</span>
         </button>
         
         <button
           type="button"
           onClick={handleNext}
-          className="px-4 py-2 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-md hover:from-sky-600 hover:to-sky-700 
-            transform hover:scale-105 transition-all duration-200 flex items-center space-x-2 text-sm"
+          className="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center justify-center gap-2 transition-all duration-300 transform hover:-translate-y-0.5 shadow-md hover:shadow-lg [&>span]:text-white [&>svg]:text-white"
         >
-          <span>{isLastStep ? 'Start Chat' : 'Next'}</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="text-white">{isLastStep ? 'Start Chat' : 'Next'}</span>
+          <svg className="w-4 h-4 icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -852,13 +850,10 @@ const ChatInterface = () => {
                 setShowWelcome(false);
                 setShowDisclaimer(true);
               }}
-              className="w-full px-6 py-3 bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-lg 
-                       hover:from-sky-600 hover:to-teal-600 transition-all duration-200 
-                       shadow-md hover:shadow-lg transform hover:-translate-y-0.5
-                       flex items-center justify-center space-x-2"
+              className="btn-primary btn-lg"
             >
-              <span>Get Started</span>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              Get Started
+              <svg className="w-5 h-5 icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -1094,7 +1089,7 @@ const ChatInterface = () => {
             <button
               type="button"
               onClick={handleSubmit}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-sky-500 hover:text-sky-600 disabled:text-gray-300 disabled:hover:text-gray-300 transition-colors duration-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 hover:from-sky-600 hover:via-teal-600 hover:to-green-600 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               disabled={!inputMessage.trim()}
             >
               <svg className="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
