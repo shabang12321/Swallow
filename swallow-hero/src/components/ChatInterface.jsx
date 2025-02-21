@@ -41,7 +41,7 @@ const QUESTIONNAIRE_STEPS = [
         name: 'height', 
         label: 'Height (cm)', 
         type: 'range', 
-        min: 100,
+        min: 50,
         max: 250,
         defaultValue: 170,
         allowCustomInput: true,
@@ -51,7 +51,7 @@ const QUESTIONNAIRE_STEPS = [
         name: 'weight', 
         label: 'Weight (kg)', 
         type: 'range',
-        min: 40,
+        min: 20,
         max: 200,
         defaultValue: 70,
         allowCustomInput: true,
@@ -141,11 +141,11 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
         if (field.name === 'age' && (num < 18 || num > 120)) {
           newErrors[field.name] = 'Please enter a valid age between 18 and 120';
         }
-        if (field.name === 'height' && (num < 50 || num > 300)) {
-          newErrors[field.name] = 'Please enter a valid height between 50cm and 300cm';
+        if (field.name === 'height' && num < 0) {
+          newErrors[field.name] = 'Height cannot be negative';
         }
-        if (field.name === 'weight' && (num < 30 || num > 300)) {
-          newErrors[field.name] = 'Please enter a valid weight between 30kg and 300kg';
+        if (field.name === 'weight' && num < 0) {
+          newErrors[field.name] = 'Weight cannot be negative';
         }
       }
     });
@@ -171,7 +171,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
   };
 
   const renderField = (field) => {
-    const value = formData[field.name] || field.defaultValue || '';
+    const value = formData[field.name] !== undefined ? formData[field.name] : field.defaultValue;
     const error = touched[field.name] && errors[field.name];
 
     switch (field.type) {
@@ -183,14 +183,17 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                 type="range"
                 min={field.min}
                 max={field.max}
-                value={value}
+                value={Math.min(Math.max(value || field.defaultValue, field.min), field.max)}
                 onChange={(e) => onChange(field.name, e.target.value)}
                 onFocus={() => handleFieldFocus(field.name)}
                 className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               {field.allowCustomInput && !showCustomInput[field.name] ? (
                 <button
-                  onClick={() => setShowCustomInput(prev => ({ ...prev, [field.name]: true }))}
+                  onClick={() => {
+                    setShowCustomInput(prev => ({ ...prev, [field.name]: true }));
+                    onChange(field.name, value);
+                  }}
                   className="w-20 px-3 py-1 text-sm bg-white border border-gray-200 rounded hover:border-sky-500 transition-colors text-center"
                 >
                   {value} {field.name === 'height' ? 'cm' : 'kg'}
@@ -198,19 +201,24 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
               ) : field.allowCustomInput ? (
                 <input
                   type="number"
+                  min="0"
                   value={value}
-                  min={field.min}
-                  max={field.max}
                   onChange={(e) => {
-                    // Allow empty string or numbers within range
-                    const newValue = e.target.value;
-                    if (newValue === '' || (Number(newValue) >= field.min && Number(newValue) <= field.max)) {
-                      onChange(field.name, newValue);
+                    const newValue = Math.max(0, Number(e.target.value)) || '';
+                    onChange(field.name, newValue.toString());
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      e.target.blur();
+                    }
+                    // Prevent minus sign
+                    if (e.key === '-') {
+                      e.preventDefault();
                     }
                   }}
                   onBlur={() => {
-                    // On blur, if empty or invalid, set to default
-                    if (value === '' || isNaN(Number(value))) {
+                    if (!formData[field.name] && formData[field.name] !== '0') {
                       onChange(field.name, field.defaultValue.toString());
                     }
                     setShowCustomInput(prev => ({ ...prev, [field.name]: false }));
@@ -878,7 +886,7 @@ const ChatInterface = () => {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Important Note</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">🚨Important Note</h2>
           <p className="text-gray-600 text-lg mb-6">
             Our AI provides general recommendations based on available information. 
             Always consult with a healthcare professional before starting any new supplement regimen.
