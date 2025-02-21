@@ -18,6 +18,20 @@ service cloud.firestore {
       return timestamp is timestamp;
     }
 
+    function isValidProfileData(data) {
+      return data.keys().hasAll(['email']) &&
+        (!('fullName' in data) || data.fullName is string) &&
+        (!('dateOfBirth' in data) || data.dateOfBirth is string) &&
+        (!('gender' in data) || data.gender is string) &&
+        (!('height' in data) || data.height is string) &&
+        (!('weight' in data) || data.weight is string) &&
+        (!('medicalConditions' in data) || data.medicalConditions is string) &&
+        (!('allergies' in data) || data.allergies is string) &&
+        (!('emergencyContact' in data) || data.emergencyContact is string) &&
+        (!('phoneNumber' in data) || data.phoneNumber is string) &&
+        (!('profileCompleted' in data) || data.profileCompleted is bool);
+    }
+
     // Default deny all
     match /{document=**} {
       allow read, write: if false;
@@ -26,13 +40,8 @@ service cloud.firestore {
     // User profiles
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isUserOwned(userId) && 
-        request.resource.data.keys().hasAll(['email', 'createdAt']) &&
-        request.resource.data.email is string &&
-        isValidTimestamp(request.resource.data.createdAt);
-      allow update: if isUserOwned(userId) &&
-        request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['lastLogin', 'preferences', 'profile']);
+      allow create: if isUserOwned(userId) && isValidProfileData(request.resource.data);
+      allow update: if isUserOwned(userId) && isValidProfileData(request.resource.data);
     }
 
     // Chat messages

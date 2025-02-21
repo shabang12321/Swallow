@@ -9,6 +9,7 @@ import {
 } from '../config/firebase';
 
 const Auth = ({ onClose }) => {
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,8 +45,11 @@ const Auth = ({ onClose }) => {
     }
   };
 
-  const handleAuthSuccess = () => {
+  const handleAuthSuccess = (isNewUser = false) => {
     onClose();
+    if (isNewUser) {
+      navigate('/profile');
+    }
   };
 
   const validateEmail = (email) => {
@@ -82,14 +86,10 @@ const Auth = ({ onClose }) => {
     try {
       if (isSignUp) {
         await signUpWithEmail(email, password);
-        setSuccessMessage('Account created successfully! You can now sign in.');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setIsSignUp(false);
+        handleAuthSuccess(true);
       } else {
         await signInWithEmail(email, password);
-        handleAuthSuccess();
+        handleAuthSuccess(false);
       }
     } catch (err) {
       setError(err.message.replace('Firebase:', '').trim());
@@ -104,8 +104,10 @@ const Auth = ({ onClose }) => {
     setLoading(true);
 
     try {
-      await signInWithGoogle();
-      handleAuthSuccess();
+      const result = await signInWithGoogle();
+      // Check if this is a new user
+      const isNewUser = result?.additionalUserInfo?.isNewUser;
+      handleAuthSuccess(isNewUser);
     } catch (err) {
       setError(err.message.replace('Firebase:', '').trim());
     } finally {

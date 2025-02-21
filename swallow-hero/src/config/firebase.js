@@ -8,7 +8,12 @@ import {
   signOut, 
   onAuthStateChanged
 } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { 
+  initializeFirestore, 
+  persistentLocalCache,
+  persistentSingleTabManager,
+  CACHE_SIZE_UNLIMITED 
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
@@ -25,9 +30,16 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
+// Initialize Firestore with offline persistence enabled from the start
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentSingleTabManager(),
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED
+  })
+});
+
+// Initialize other services
 export const auth = getAuth(app);
-export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Initialize Analytics conditionally
@@ -45,7 +57,7 @@ export const googleProvider = new GoogleAuthProvider();
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    return result;
   } catch (error) {
     console.error('Google sign-in error:', error);
     throw error;
@@ -55,7 +67,7 @@ export const signInWithGoogle = async () => {
 export const signUpWithEmail = async (email, password) => {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    return result.user;
+    return result;
   } catch (error) {
     console.error('Email sign-up error:', error);
     throw error;
@@ -65,7 +77,7 @@ export const signUpWithEmail = async (email, password) => {
 export const signInWithEmail = async (email, password) => {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    return result.user;
+    return result;
   } catch (error) {
     console.error('Email sign-in error:', error);
     throw error;
@@ -85,5 +97,4 @@ export const onAuthChange = (callback) => {
   return onAuthStateChanged(auth, callback);
 };
 
-// Export analytics if needed
-export { analytics }; 
+export { db, analytics }; 

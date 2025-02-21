@@ -10,6 +10,7 @@ import Loading from './components/Loading';
 import About from './pages/About';
 import Plans from './pages/Plans';
 import Home from './pages/Home';
+import UserProfile from './components/UserProfile';
 import ClickSpark from './components/ClickSpark';
 import BackgroundParticles from './components/BackgroundParticles';
 
@@ -24,8 +25,8 @@ const ScrollToTop = () => {
   return null;
 };
 
-// Protected Chat Route - Only this needs auth
-const ProtectedChatRoute = () => {
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
   const [user, loading] = useAuthState(auth);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -39,7 +40,7 @@ const ProtectedChatRoute = () => {
         <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-8 text-center">
           <h2 className="text-2xl font-bold mb-4 hero-gradient">Authentication Required</h2>
           <p className="text-gray-600 mb-6">
-            Please sign in or create an account to access the AI Chat feature.
+            Please sign in or create an account to continue.
           </p>
           <div className="space-y-4">
             <button
@@ -61,7 +62,7 @@ const ProtectedChatRoute = () => {
     );
   }
 
-  return <ChatInterface />;
+  return children;
 };
 
 const App = () => {
@@ -124,8 +125,9 @@ const App = () => {
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/plans" element={<Plans />} />
 
-            {/* Protected route - Only chat requires auth */}
-            <Route path="/chat" element={<ProtectedChatRoute />} />
+            {/* Protected routes */}
+            <Route path="/chat" element={<ProtectedRoute><ChatInterface /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
 
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
