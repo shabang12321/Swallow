@@ -29,11 +29,18 @@ const ScrollToTop = () => {
 const ProtectedRoute = ({ children }) => {
   const [user, loading] = useAuthState(auth);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const location = useLocation();
 
+  // Show loading state while checking auth
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-screen p-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
+  // If not authenticated, show auth modal
   if (!user) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
@@ -62,6 +69,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
+  // If authenticated, render the protected content
   return children;
 };
 
@@ -126,8 +134,22 @@ const App = () => {
             <Route path="/plans" element={<Plans />} />
 
             {/* Protected routes */}
-            <Route path="/chat" element={<ProtectedRoute><ChatInterface /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+            <Route 
+              path="/chat" 
+              element={
+                <ProtectedRoute>
+                  <ChatInterface />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              } 
+            />
 
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
