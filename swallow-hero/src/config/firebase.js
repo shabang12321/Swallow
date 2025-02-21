@@ -22,12 +22,6 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
-// Debug Firebase configuration
-console.log('Initializing Firebase with config:', {
-  authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId
-});
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
