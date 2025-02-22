@@ -13,10 +13,20 @@ import {
   persistentLocalCache,
   persistentSingleTabManager,
   CACHE_SIZE_UNLIMITED,
-  enableIndexedDbPersistence
+  enableIndexedDbPersistence,
+  doc,
+  getDoc
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { initializeAppCheck, ReCaptchaV3Provider } from '@firebase/app-check';
+
+// Enable App Check debug token for development
+if (process.env.NODE_ENV === 'development') {
+  // This must be called before any other firebase functions
+  window.FIREBASE_APPCHECK_DEBUG_TOKEN = 'f6c5300a-8bed-4783-b703-088be7aee299';
+  console.log('Using App Check debug token:', window.FIREBASE_APPCHECK_DEBUG_TOKEN);
+}
 
 // Debug: Log environment variables (without sensitive values)
 console.log('Firebase Config Check:', {
@@ -26,7 +36,8 @@ console.log('Firebase Config Check:', {
   hasStorageBucket: !!process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
   hasMessagingSenderId: !!process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
   hasAppId: !!process.env.REACT_APP_FIREBASE_APP_ID,
-  hasMeasurementId: !!process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
+  hasMeasurementId: !!process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
+  hasRecaptchaSiteKey: !!process.env.REACT_APP_RECAPTCHA_SITE_KEY
 });
 
 const firebaseConfig = {
@@ -41,6 +52,29 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize App Check
+let appCheck = null;
+try {
+  if (!process.env.REACT_APP_RECAPTCHA_SITE_KEY) {
+    throw new Error('Missing reCAPTCHA site key');
+  }
+  
+  const debugOptions = process.env.NODE_ENV === 'development' ? {
+    isTokenAutoRefreshEnabled: true,
+    failIfNotRegistered: false // Important for development
+  } : undefined;
+
+  appCheck = initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(process.env.REACT_APP_RECAPTCHA_SITE_KEY),
+    isTokenAutoRefreshEnabled: true,
+    debugOptions
+  });
+
+  console.log('App Check initialized successfully with debug mode:', process.env.NODE_ENV === 'development');
+} catch (error) {
+  console.error('Error initializing App Check:', error);
+}
 
 // Initialize Firestore with offline persistence enabled from the start
 const db = initializeFirestore(app, {
@@ -149,4 +183,69 @@ auth.onAuthStateChanged((user) => {
   });
 });
 
-export { db, analytics }; 
+export const testAppCheck = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required for App Check test');
+    }
+    
+    // Try to read the user's document
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    console.log('App Check Verification:', {
+      success: true,
+      documentExists: userDoc.exists(),
+      timestamp: new Date().toISOString(),
+      userId
+    });
+    return true;
+  } catch (error) {
+    console.error('App Check Verification Failed:', {
+      error: error.message,
+      code: error.code,
+      timestamp: new Date().toISOString(),
+      userId
+    });
+    return false;
+  }
+};
+
+// Make testAppCheck available globally for testing
+if (process.env.NODE_ENV === 'development') {
+  window.testAppCheck = async (userId) => {
+    try {
+      if (!userId) {
+        throw new Error('User ID is required for App Check test');
+      }
+      
+      // Try to read the user's document
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      console.log('App Check Verification:', {
+        success: true,
+        documentExists: userDoc.exists(),
+        timestamp: new Date().toISOString(),
+        userId
+      });
+      return true;
+    } catch (error) {
+      console.error('App Check Verification Failed:', {
+        error: error.message,
+        code: error.code,
+        timestamp: new Date().toISOString(),
+        userId
+      });
+      return false;
+    }
+  };
+
+  // Add convenience method to test with current user
+  window.testAppCheckWithCurrentUser = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      console.error('No user is currently signed in');
+      return false;
+    }
+    return window.testAppCheck(currentUser.uid);
+  };
+}
+
+export { db, analytics, appCheck }; 
