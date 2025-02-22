@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { signOut } from 'firebase/auth';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Navigation = ({ onAuthClick }) => {
   const location = useLocation();
@@ -11,6 +12,7 @@ const Navigation = ({ onAuthClick }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [user] = useAuthState(auth);
   const userMenuRef = useRef(null);
+  const { profileTheme, getThemeGradient } = useTheme();
 
   const isActive = (path) => location.pathname === path;
 
@@ -105,7 +107,7 @@ const Navigation = ({ onAuthClick }) => {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 flex items-center justify-center text-white font-medium">
+                  <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${getThemeGradient(profileTheme)} flex items-center justify-center text-white font-medium`}>
                     {user.email ? user.email[0].toUpperCase() : 'U'}
                   </div>
                   <span className="text-sm text-gray-700">{user.email}</span>

@@ -29,7 +29,8 @@ service cloud.firestore {
         (!('allergies' in data) || data.allergies is string) &&
         (!('emergencyContact' in data) || data.emergencyContact is string) &&
         (!('phoneNumber' in data) || data.phoneNumber is string) &&
-        (!('profileCompleted' in data) || data.profileCompleted is bool);
+        (!('profileCompleted' in data) || data.profileCompleted is bool) &&
+        (!('profileTheme' in data) || (data.profileTheme in ['ocean', 'sunset', 'citrus']));
     }
 
     // Default deny all

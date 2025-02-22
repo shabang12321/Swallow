@@ -13,6 +13,7 @@ import Home from './pages/Home';
 import UserProfile from './components/UserProfile';
 import ClickSpark from './components/ClickSpark';
 import BackgroundParticles from './components/BackgroundParticles';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Scroll to top component
 const ScrollToTop = () => {
@@ -104,58 +105,33 @@ const App = () => {
 
   return (
     <Router>
-      <ScrollToTop />
-      <div className="min-h-screen flex flex-col relative bg-gradient-to-br from-sky-50 to-emerald-50">
-        <BackgroundParticles />
-        <ClickSpark
-          sparkColor="rgba(14, 165, 233, 0.95)"
-          sparkSize={10}
-          sparkRadius={15}
-          sparkCount={12}
-          duration={400}
-          easing="ease-out"
-          extraScale={1}
-        />
-        {/* Navigation with auth button */}
-        <Navigation onAuthClick={() => setShowAuthModal(true)} />
-        
-        {/* Main content */}
-        <div className="flex-1 relative z-10">
-          <Routes>
-            {/* Public routes - Freely accessible without auth */}
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/faq" element={<FAQPage />} />
-            <Route path="/plans" element={<Plans />} />
-
-            {/* Protected routes */}
-            <Route 
-              path="/chat" 
-              element={
-                <ProtectedRoute>
-                  <ChatInterface />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <UserProfile />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-
-          {/* Auth Modal - Only shown when explicitly triggered */}
+      <ThemeProvider>
+        <div className="flex flex-col min-h-screen">
+          <ScrollToTop />
+          <Navigation onAuthClick={() => setShowAuthModal(true)} />
           {showAuthModal && (
             <Auth onClose={handleCloseAuth} />
           )}
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/chat" element={
+              <ProtectedRoute>
+                <ChatInterface />
+              </ProtectedRoute>
+            } />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/plans" element={<Plans />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            } />
+          </Routes>
+          <ClickSpark />
+          <BackgroundParticles />
         </div>
-      </div>
+      </ThemeProvider>
     </Router>
   );
 };
