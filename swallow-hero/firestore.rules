@@ -14,8 +14,8 @@ service cloud.firestore {
       return text is string && text.size() <= 1000;
     }
     
-    function isValidTimestamp(timestamp) {
-      return timestamp is timestamp;
+    function isValidTimestamp(ts) {
+      return ts is timestamp;
     }
 
     function isValidProfileData(data) {
@@ -44,6 +44,17 @@ service cloud.firestore {
       allow update: if isUserOwned(userId) && isValidProfileData(request.resource.data);
     }
 
+    // Health profiles
+    match /healthProfiles/{userId} {
+      allow read: if isUserOwned(userId);
+      allow write: if isUserOwned(userId) &&
+        request.resource.data.keys().hasAll(['age', 'sex', 'height', 'weight', 'lastUpdated']) &&
+        request.resource.data.age is number &&
+        request.resource.data.height is number &&
+        request.resource.data.weight is number &&
+        isValidTimestamp(request.resource.data.lastUpdated);
+    }
+
     // Chat messages
     match /chats/{chatId} {
       allow read: if isAuthenticated();
@@ -54,17 +65,6 @@ service cloud.firestore {
         isValidTimestamp(request.resource.data.timestamp);
       allow update, delete: if isAuthenticated() && 
         resource.data.userId == request.auth.uid;
-    }
-
-    // Health profiles
-    match /healthProfiles/{userId} {
-      allow read: if isUserOwned(userId);
-      allow write: if isUserOwned(userId) &&
-        request.resource.data.keys().hasAll(['age', 'sex', 'height', 'weight', 'lastUpdated']) &&
-        request.resource.data.age is number &&
-        request.resource.data.height is number &&
-        request.resource.data.weight is number &&
-        isValidTimestamp(request.resource.data.lastUpdated);
     }
 
     // Public data (FAQs, Plans, etc.)
@@ -80,4 +80,4 @@ service cloud.firestore {
         ((request.time - resource.data.lastAction) > duration.value(1, 's'));
     }
   }
-} 
+}
