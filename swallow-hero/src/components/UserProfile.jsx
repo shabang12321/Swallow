@@ -31,18 +31,8 @@ const UserProfile = () => {
 
   // Handle online/offline status
   useEffect(() => {
-    const handleOnline = () => {
-      console.log('Connection restored');
-      setIsOffline(false);
-      // Retry fetching data when coming back online
-      if (retryCount > 0) {
-        checkUser();
-      }
-    };
-    const handleOffline = () => {
-      console.log('Connection lost');
-      setIsOffline(true);
-    };
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -103,29 +93,19 @@ const UserProfile = () => {
       }
       setLoading(false);
       setError(null);
-    } catch (err) {
-      console.error('Error checking user profile:', {
-        code: err.code,
-        message: err.message,
-        isFirebaseError: err.name === 'FirebaseError',
-        stack: err.stack
-      });
-      
+    } catch (error) {
       let errorMessage = 'Unable to load profile. ';
       if (!db) {
-        errorMessage += 'Database not configured. Please check your Firebase setup.';
+        errorMessage += 'Database not configured.';
       } else if (isOffline) {
         errorMessage += 'You are currently offline.';
-      } else if (err.code === 'permission-denied') {
-        errorMessage += 'Permission denied. Please check Firestore rules.';
       } else {
-        errorMessage += err.message || 'Please try again.';
+        errorMessage += 'Please try again.';
       }
       
       setError(errorMessage);
       setLoading(false);
       
-      // Increment retry count if offline
       if (isOffline && retryCount < 3) {
         setRetryCount(prev => prev + 1);
       }

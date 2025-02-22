@@ -37,12 +37,11 @@ const Navigation = ({ onAuthClick }) => {
     try {
       await signOut(auth);
       handleLinkClick();
-      // If on a protected route, redirect to home
       if (location.pathname === '/chat') {
         navigate('/');
       }
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Sign out failed');
     }
   };
 

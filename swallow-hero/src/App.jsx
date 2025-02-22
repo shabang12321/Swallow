@@ -78,12 +78,7 @@ const App = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Debug environment variables and initialization
-    console.log('App Environment:', {
-      nodeEnv: process.env.NODE_ENV,
-      hasOpenAIKey: !!process.env.REACT_APP_OPENAI_API_KEY,
-      hasFirebaseConfig: !!process.env.REACT_APP_FIREBASE_API_KEY
-    });
+    // Any essential initialization can stay here
   }, []);
 
   if (error) {
