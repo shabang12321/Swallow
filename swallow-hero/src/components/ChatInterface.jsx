@@ -1218,7 +1218,7 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
                           WebkitBackdropFilter: 'none !important',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                         } : message.sender === 'user' ? {
-                          background: 'linear-gradient(to right, rgba(14, 164, 233, 0.75), rgba(20, 184, 166, 0.75))',
+                          background: 'linear-gradient(to right, rgba(20, 184, 166, 0.65), rgba(14, 164, 233, 0.65))',
                           color: '#FFFFFF',
                           textShadow: '0 1px 1px rgba(0, 0, 0, 0.1)',
                           boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06)'
