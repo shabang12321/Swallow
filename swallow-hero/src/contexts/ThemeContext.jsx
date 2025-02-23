@@ -35,12 +35,12 @@ export const ThemeProvider = ({ children }) => {
   const getThemeGradient = (theme) => {
     switch (theme) {
       case 'sunset':
-        return 'from-purple-500 via-pink-500 to-rose-500';
+        return 'from-purple-600 via-pink-600 to-rose-600';
       case 'citrus':
-        return 'from-amber-400 via-yellow-500 to-lime-600';
+        return 'from-amber-500 via-yellow-500 to-lime-500';
       case 'ocean':
       default:
-        return 'from-sky-500 via-teal-500 to-green-500';
+        return 'from-sky-600 via-cyan-600 to-teal-600';
     }
   };
 

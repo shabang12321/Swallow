@@ -2,11 +2,25 @@ import React, { useState, useRef, useEffect } from 'react';
 import OpenAI from 'openai';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Message formatting components
-const BoldText = ({ text }) => (
-  <p className="font-bold mb-2">{text.replace(/^\*\*|\*\*$/g, '')}</p>
-);
+const BoldText = ({ text }) => {
+  const { profileTheme, getThemeGradient } = useTheme();
+  return (
+    <div className={`inline-block font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r ${getThemeGradient(profileTheme)}`} 
+      style={{ 
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize: '1.125rem',
+        lineHeight: '1.75rem',
+        fontWeight: 700
+      }}>
+      {text.replace(/^\*\*|\*\*$/g, '')}
+    </div>
+  );
+};
 
 const BulletList = ({ title, items }) => (
   <div className="space-y-2">
@@ -49,21 +63,37 @@ const formatMessageContent = (content) => {
   const sections = content.split('\n\n').filter(Boolean);
   
   return sections.map((section, index) => {
-    // Bold text
+    // Main headers and supplement names (keep theme gradient)
     if (section.startsWith('**') && section.endsWith('**')) {
       return <BoldText key={index} text={section} />;
     }
     
-    // Bullet list
-    if (section.includes('\n-') || section.includes('\n•')) {
-      const [title, ...items] = section.split('\n').filter(Boolean);
-      return <BulletList key={index} title={title} items={items} />;
-    }
-    
-    // Supplement info
-    if (section.toLowerCase().includes('supplement') || section.includes(':')) {
-      const [title, ...details] = section.split('\n');
-      return <SupplementInfo key={index} title={title} details={details} />;
+    // Supplement info with bold text handling
+    if (section.includes('**')) {
+      const lines = section.split('\n');
+      return (
+        <div key={index} className="space-y-2">
+          {lines.map((line, i) => {
+            if (line.startsWith('**') && line.endsWith('**')) {
+              return <BoldText key={i} text={line} />;
+            }
+            if (line.includes('**')) {
+              // Handle Purpose and Dosage as regular bold text
+              const parts = line.split(/\*\*(.*?)\*\*/);
+              return (
+                <p key={i} className="flex items-start space-x-2">
+                  <span className="text-sky-500">•</span>
+                  <span>
+                    <span className="font-bold">{parts[1]}</span>
+                    {parts[2]}
+                  </span>
+                </p>
+              );
+            }
+            return <p key={i}>{line}</p>;
+          })}
+        </div>
+      );
     }
     
     // Regular paragraph
@@ -494,11 +524,11 @@ const ANALYSIS_FORMAT_TEMPLATE = `IMPORTANT: Your next response MUST follow this
 
 const WELCOME_MESSAGES = {
   initial: {
-    text: "**👋 Welcome to Swallow Hero AI**\n\nI'm here to help you live your best life!",
+    text: "**Welcome to Swallow Hero AI**\n\nI'm here to help you live your best life!",
     sender: 'ai'
   },
   analyzing: {
-    text: "**🔍 Analyzing Your Profile**\n\nI'm analysing your health profile to create personalised supplement recommendations for you. One moment please...",
+    text: "**Analyzing Your Profile**\n\nI'm analysing your health profile to create personalised supplement recommendations for you. One moment please...",
     sender: 'ai'
   }
 };
@@ -1013,12 +1043,12 @@ const ChatInterface = () => {
   if (showQuestionnaire) {
     const currentStepData = QUESTIONNAIRE_STEPS[currentStep];
     return (
-      <div className="fixed inset-0 top-16 flex flex-col bg-white">
-        <div className="py-3 px-4 border-b border-gray-200 flex-none bg-white">
+      <div className="fixed inset-0 top-16 flex flex-col bg-transparent">
+        <div className="py-3 px-4 border-b border-gray-200 flex-none bg-transparent">
           <h1 className="text-xl font-bold text-gray-900 text-center">Health Profile Questionnaire</h1>
         </div>
 
-        <div className="px-4 py-2 border-b border-gray-100 flex-none bg-white">
+        <div className="px-4 py-2 border-b border-gray-100 flex-none bg-transparent">
           <div className="flex justify-between mb-1">
             {QUESTIONNAIRE_STEPS.map((step, index) => (
               <div
@@ -1034,7 +1064,7 @@ const ChatInterface = () => {
           </p>
         </div>
 
-        <div className="flex-1 overflow-hidden bg-white">
+        <div className="flex-1 overflow-hidden bg-transparent">
           <div className="h-full overflow-y-auto px-4 py-4">
             <div className="max-w-2xl mx-auto">
               <div className="card p-8 shadow-lg"
@@ -1083,9 +1113,9 @@ const ChatInterface = () => {
   }
 
   return (
-    <div className="fixed inset-0 top-16 flex flex-col bg-white">
+    <div className="fixed inset-0 top-16 flex flex-col bg-transparent">
       <div className="flex-1 min-h-0">
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto bg-transparent">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center max-w-xl px-4 card p-8 shadow-lg"
@@ -1093,7 +1123,7 @@ const ChatInterface = () => {
                   backgroundColor: '#FFFFFF',
                   isolation: 'isolate',
                   position: 'relative',
-                  zIndex: 1,
+                  zIndex: 10,
                   backgroundImage: 'none !important',
                   backdropFilter: 'none !important',
                   WebkitBackdropFilter: 'none !important'
@@ -1110,24 +1140,37 @@ const ChatInterface = () => {
                   }}
                 />
                 <div className="relative z-2">
-                  <p className="text-lg mb-3 font-semibold text-gray-700">👋 Welcome! How can I help with your supplement needs?</p>
-                  <div className="space-y-4">
-                    <div className="space-y-2 text-gray-600 text-sm">
-                      <p>"I want to improve my energy levels"</p>
-                      <p>"What supplements are good for joint health?"</p>
-                      <p>"I need help with my sleep quality"</p>
-                    </div>
-                    <div className="pt-4 border-t border-gray-200">
-                      <Link 
-                        to="/faq"
-                        className="text-sky-500 hover:text-sky-600 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
-                      >
-                        <span>View Frequently Asked Questions</span>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  <BoldText text="**Welcome to Swallow Hero AI**" />
+                  <div className="space-y-4 text-gray-600">
+                    <p>
+                      I'm here to help you with personalized supplement recommendations and answer any questions about:
+                    </p>
+                    <ul className="space-y-2 text-left">
+                      <li className="flex items-center">
+                        <svg className="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                      </Link>
-                    </div>
+                        Vitamin and supplement recommendations
+                      </li>
+                      <li className="flex items-center">
+                        <svg className="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Dosage and timing guidance
+                      </li>
+                      <li className="flex items-center">
+                        <svg className="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Potential interactions and safety
+                      </li>
+                      <li className="flex items-center">
+                        <svg className="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        General nutrition advice
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -1151,7 +1194,7 @@ const ChatInterface = () => {
                           backgroundColor: '#FFFFFF',
                           isolation: 'isolate',
                           position: 'relative',
-                          zIndex: 1,
+                          zIndex: 10,
                           backgroundImage: 'none !important',
                           backdropFilter: 'none !important',
                           WebkitBackdropFilter: 'none !important',
@@ -1171,35 +1214,13 @@ const ChatInterface = () => {
                             }}
                           />
                         )}
-                        <div className="relative z-2 markdown-content">
+                        <div className="relative z-2">
                           {message.sender === 'ai' ? (
-                            <ReactMarkdown>
-                              {message.text}
-                            </ReactMarkdown>
+                            formatMessageContent(message.text)
                           ) : (
                             <pre className="font-sans whitespace-pre-wrap">{message.text}</pre>
                           )}
                         </div>
-                      </div>
-                      <div className="flex items-center mt-1 space-x-2">
-                        <div className={`text-xs text-gray-500 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                          {formatTimestamp(message.timestamp)}
-                        </div>
-                        {message.sender === 'ai' && (
-                          <div className="flex space-x-1">
-                            {['👍', '❤️', '🎯'].map((reaction) => (
-                              <button
-                                key={reaction}
-                                onClick={() => handleReaction(index, reaction)}
-                                className={`text-xs p-1 rounded-full transition-transform hover:scale-125 ${
-                                  messageReactions[index] === reaction ? 'bg-gray-100' : ''
-                                }`}
-                              >
-                                {reaction}
-                              </button>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -1243,7 +1264,7 @@ const ChatInterface = () => {
         </div>
       </div>
 
-      <div className="border-t border-gray-200 bg-white">
+      <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <form onSubmit={handleSubmit} className="relative" noValidate>
             <input
