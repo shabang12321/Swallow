@@ -65,14 +65,36 @@ const formatMessageContent = (content) => {
   return sections.map((section, index) => {
     // Main headers and supplement names (keep theme gradient)
     if (section.startsWith('**') && section.endsWith('**')) {
-      return <BoldText key={index} text={section} />;
+      return (
+        <div key={index} className="mt-6 first:mt-0">
+          <BoldText text={section} />
+        </div>
+      );
+    }
+    
+    // Important Notes section
+    if (section.startsWith('**Important Notes:**')) {
+      const [header, ...notes] = section.split('\n');
+      return (
+        <div key={index} className="mt-6">
+          <BoldText text={header} />
+          <ul className="space-y-1.5">
+            {notes.map((note, i) => (
+              <li key={i} className="flex items-start space-x-2">
+                <span className="text-sky-500 mt-1">•</span>
+                <span>{note.replace(/^[-•]\s*/, '')}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
     }
     
     // Supplement info with bold text handling
     if (section.includes('**')) {
       const lines = section.split('\n');
       return (
-        <div key={index} className="space-y-2">
+        <div key={index} className="mt-4">
           {lines.map((line, i) => {
             if (line.startsWith('**') && line.endsWith('**')) {
               return <BoldText key={i} text={line} />;
@@ -97,7 +119,7 @@ const formatMessageContent = (content) => {
     }
     
     // Regular paragraph
-    return <p key={index} className="mb-2">{section}</p>;
+    return <p key={index} className="mb-4">{section}</p>;
   });
 };
 
@@ -510,11 +532,9 @@ const ANALYSIS_FORMAT_TEMPLATE = `IMPORTANT: Your next response MUST follow this
 
 **Personalized Supplement Analysis**
 
-**Recommended Supplements:**
-
 **[Supplement Name]**
-- **Purpose:** [Brief purpose]
-- **Dosage:** [Clear dosage]
+- **Purpose:** [Personalised, Brief and Clear purpose]
+- **Dosage:** [Personalised Clear dosage]
 
 [Repeat for each recommended supplement]
 
@@ -542,17 +562,15 @@ When first analyzing a health profile, respond with:
 
 **Personalized Supplement Analysis**
 
-**Recommended Supplements:**
-
 **[Supplement Name]**
-- **Purpose:** [Brief purpose]
-- **Dosage:** [Clear dosage]
+- **Purpose:** [Personalised, Brief and Clear purpose]
+- **Dosage:** [Personalised Clear dosage]
 
 [Repeat for each supplement]
 
 **Important Notes:**
 - [Safety disclaimers]
-- [Additional specific notes]
+- [Additional personalised notes]
 
 SUBSEQUENT RESPONSES:
 For all other responses, use the same structure.
@@ -826,27 +844,27 @@ const ChatInterface = () => {
 
   // Add this helper function
   const formatUserProfile = (data) => {
-    return `🔍 Health Profile Summary
+    return `**Health Profile Summary**
 
-👤 Basic Information 
-    • Age: ${data.age}
-    • Sex: ${data.sex}
-    • Height: ${data.height}cm
-    • Weight: ${data.weight}kg
+**Basic Information**
+• Age: ${data.age}
+• Sex: ${data.sex}
+• Height: ${data.height}cm
+• Weight: ${data.weight}kg
 
-💪 Lifestyle & Diet 
-    • Activity: ${data.activityLevel}
-    • Diet: ${data.dietType}
-    ${data.dietaryRestrictions?.length ? `• Restrictions: ${data.dietaryRestrictions.join(', ')}` : '• Restrictions: None'}
+**Lifestyle & Diet**
+• Activity: ${data.activityLevel}
+• Diet: ${data.dietType}
+${data.dietaryRestrictions?.length ? `• Restrictions: ${data.dietaryRestrictions.join(', ')}` : '• Restrictions: None'}
 
-❤️ Health Status 
-    • Concerns: ${data.healthConcerns.join(', ')}
-    ${data.medicalConditions ? `• Medical: ${data.medicalConditions}` : '• Medical: None'}
-    ${data.medications ? `• Medications: ${data.medications}` : '• Medications: None'}
+**Health Status**
+• Concerns: ${data.healthConcerns.join(', ')}
+${data.medicalConditions ? `• Medical: ${data.medicalConditions}` : '• Medical: None'}
+${data.medications ? `• Medications: ${data.medications}` : '• Medications: None'}
 
-💊 Current Supplements 
-    • Current: ${data.currentSupplements || 'None'}
-    ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}` : '• Goals: None'}`;
+**Current Supplements**
+• Current: ${data.currentSupplements || 'None'}
+${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}` : '• Goals: None'}`;
   };
 
   // Update the formatAIMessage function
@@ -1187,7 +1205,7 @@ const ChatInterface = () => {
                       <div
                         className={`relative group rounded-2xl px-4 py-3 ${
                           message.sender === 'user'
-                            ? 'bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-tr-none'
+                            ? 'rounded-tr-none'
                             : 'card text-gray-800 rounded-tl-none'
                         }`}
                         style={message.sender === 'ai' ? {
@@ -1199,6 +1217,11 @@ const ChatInterface = () => {
                           backdropFilter: 'none !important',
                           WebkitBackdropFilter: 'none !important',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                        } : message.sender === 'user' ? {
+                          background: 'linear-gradient(to right, rgba(14, 164, 233, 0.75), rgba(20, 184, 166, 0.75))',
+                          color: '#FFFFFF',
+                          textShadow: '0 1px 1px rgba(0, 0, 0, 0.1)',
+                          boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06)'
                         } : {}}
                       >
                         {message.sender === 'ai' && (
@@ -1215,7 +1238,7 @@ const ChatInterface = () => {
                           />
                         )}
                         <div className="relative z-2">
-                          {message.sender === 'ai' ? (
+                          {message.text.startsWith('**Health Profile Summary**') || message.sender === 'ai' ? (
                             formatMessageContent(message.text)
                           ) : (
                             <pre className="font-sans whitespace-pre-wrap">{message.text}</pre>
