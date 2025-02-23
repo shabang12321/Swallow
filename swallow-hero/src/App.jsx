@@ -45,12 +45,32 @@ const ProtectedRoute = ({ children }) => {
   if (!user) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4 hero-gradient">Authentication Required</h2>
-          <p className="text-gray-600 mb-6">
+        <div className="max-w-md w-full rounded-2xl shadow-lg p-8 text-center"
+          style={{ 
+            backgroundColor: '#FFFFFF',
+            isolation: 'isolate',
+            position: 'relative',
+            zIndex: 1,
+            backgroundImage: 'none !important',
+            backdropFilter: 'none !important',
+            WebkitBackdropFilter: 'none !important'
+          }}
+        >
+          <div 
+            style={{
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              background: '#FFFFFF',
+              zIndex: -1,
+              borderRadius: '1rem'
+            }}
+          />
+          <h2 className="text-2xl font-bold mb-4 hero-gradient relative z-2">Authentication Required</h2>
+          <p className="text-gray-600 mb-6 relative z-2">
             Please sign in or create an account to continue.
           </p>
-          <div className="space-y-4">
+          <div className="space-y-4 relative z-2">
             <button
               onClick={() => setShowAuthModal(true)}
               className="block w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 rounded-lg hover:from-sky-600 hover:via-teal-600 hover:to-green-600 transition-all duration-200"
@@ -59,7 +79,8 @@ const ProtectedRoute = ({ children }) => {
             </button>
             <button
               onClick={() => window.history.back()}
-              className="block w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100/80 backdrop-blur-sm rounded-lg hover:bg-gray-200/80 transition-colors"
+              className="block w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              style={{ backgroundColor: '#F3F4F6' }}
             >
               Go Back
             </button>

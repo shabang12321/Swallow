@@ -3,7 +3,7 @@ import Particles from './Particles';
 
 const BackgroundParticles = () => {
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none">
+    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: -1 }}>
       <Particles
         particleColors={['#0ea5e9', '#14b8a6', '#22c55e']} // sky-500, teal-500, green-500
         particleCount={20000}

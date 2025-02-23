@@ -127,8 +127,72 @@ code {
 }
 
 .card {
-  @apply bg-white/95 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 
+  @apply rounded-xl shadow-md hover:shadow-xl transition-shadow 
          border border-gray-100 overflow-hidden;
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 255, 255) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-image: none !important;
+  background-blend-mode: normal !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  isolation: isolate;
+  position: relative;
+  z-index: 10;
+  border-radius: 1rem !important;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 255, 255) !important;
+  opacity: 1 !important;
+  z-index: 1;
+  border-radius: 1rem !important;
+  pointer-events: none;
+}
+
+.card > * {
+  position: relative;
+  z-index: 20;
+}
+
+/* Add a new class for FAQ cards specifically */
+.faq-card {
+  @apply rounded-xl shadow-md hover:shadow-xl transition-shadow 
+         border border-gray-100 overflow-hidden;
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 255, 255) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-image: none !important;
+  background-blend-mode: normal !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  isolation: isolate;
+  position: relative;
+  z-index: 10;
+  border-radius: 1rem !important;
+}
+
+.faq-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 255, 255) !important;
+  opacity: 1 !important;
+  z-index: 1;
+  border-radius: 1rem !important;
+  pointer-events: none;
+}
+
+.faq-card > * {
+  position: relative;
+  z-index: 20;
 }
 
 .input-field {

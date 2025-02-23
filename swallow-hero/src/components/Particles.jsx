@@ -91,14 +91,22 @@ const Particles = ({
   className = "",
 }) => {
   const containerRef = useRef(null);
-  const mouseRef = useRef({ x: 0, y: 0 });
-  const scrollRef = useRef(0);
+  const stateRef = useRef({
+    mouseX: 0,
+    mouseY: 0,
+    scrollY: 0,
+    needsUpdate: false
+  });
+  const rendererRef = useRef(null);
+  const geometryRef = useRef(null);
+  const programRef = useRef(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const renderer = new Renderer({ depth: false, alpha: true });
+    rendererRef.current = renderer;
     const gl = renderer.gl;
     container.appendChild(gl.canvas);
     gl.clearColor(0, 0, 0, 0);
@@ -113,27 +121,26 @@ const Particles = ({
       camera.perspective({ aspect: gl.canvas.width / gl.canvas.height });
     };
 
-    // Handle scroll
+    // Handle scroll with passive event listener
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const normalizedScroll = scrollY * 0.001; // Adjust this multiplier to control scroll sensitivity
-      scrollRef.current = normalizedScroll;
+      stateRef.current.scrollY = window.scrollY * 0.001;
+      stateRef.current.needsUpdate = true;
     };
 
-    window.addEventListener("resize", resize, false);
-    window.addEventListener("scroll", handleScroll, false);
-    resize();
-
+    // Handle mouse move with passive event listener and batched updates
     const handleMouseMove = (e) => {
       const rect = container.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      mouseRef.current = { x, y };
+      stateRef.current.mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      stateRef.current.mouseY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      stateRef.current.needsUpdate = true;
     };
 
+    window.addEventListener("resize", resize, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     if (moveParticlesOnHover) {
-      container.addEventListener("mousemove", handleMouseMove);
+      container.addEventListener("mousemove", handleMouseMove, { passive: true });
     }
+    resize();
 
     const count = particleCount;
     const positions = new Float32Array(count * 3);
@@ -162,6 +169,7 @@ const Particles = ({
       random: { size: 4, data: randoms },
       color: { size: 3, data: colors },
     });
+    geometryRef.current = geometry;
 
     const program = new Program(gl, {
       vertex,
@@ -176,6 +184,7 @@ const Particles = ({
       transparent: true,
       depthTest: false,
     });
+    programRef.current = program;
 
     const particles = new Mesh(gl, { mode: gl.POINTS, geometry, program });
 
@@ -184,31 +193,31 @@ const Particles = ({
     let elapsed = 0;
 
     const update = (t) => {
-      animationFrameId = requestAnimationFrame(update);
       const delta = t - lastTime;
       lastTime = t;
       elapsed += delta * speed;
 
       program.uniforms.uTime.value = elapsed * 0.001;
 
-      if (moveParticlesOnHover) {
-        particles.position.x = -mouseRef.current.x * particleHoverFactor;
-        particles.position.y = -mouseRef.current.y * particleHoverFactor;
-      } else {
-        particles.position.x = 0;
-        particles.position.y = 0;
+      // Only update positions if needed
+      if (stateRef.current.needsUpdate) {
+        if (moveParticlesOnHover) {
+          particles.position.x = -stateRef.current.mouseX * particleHoverFactor;
+          particles.position.y = -stateRef.current.mouseY * particleHoverFactor;
+        }
+        particles.position.y = stateRef.current.scrollY * 2;
+        stateRef.current.needsUpdate = false;
       }
 
-      // Add scroll-based movement
-      particles.position.y = scrollRef.current * 2; // Adjust multiplier for scroll speed
-      particles.rotation.x = Math.sin(elapsed * 0.0002) * 0.1;
-      
+      // Optimize rotation calculations
       if (!disableRotation) {
-        particles.rotation.y = Math.cos(elapsed * 0.0005) * 0.15;
-        particles.rotation.z += 0.01 * speed;
+        const rotX = Math.sin(elapsed * 0.0002) * 0.1;
+        const rotY = Math.cos(elapsed * 0.0005) * 0.15;
+        particles.rotation.set(rotX, rotY, particles.rotation.z + 0.01 * speed);
       }
 
       renderer.render({ scene: particles, camera });
+      animationFrameId = requestAnimationFrame(update);
     };
 
     animationFrameId = requestAnimationFrame(update);
@@ -222,6 +231,20 @@ const Particles = ({
       cancelAnimationFrame(animationFrameId);
       if (container.contains(gl.canvas)) {
         container.removeChild(gl.canvas);
+      }
+      
+      // Proper cleanup of WebGL resources
+      if (geometryRef.current) {
+        geometryRef.current.remove();
+        geometryRef.current = null;
+      }
+      if (programRef.current) {
+        programRef.current.remove();
+        programRef.current = null;
+      }
+      if (rendererRef.current) {
+        rendererRef.current.gl.getExtension('WEBGL_lose_context')?.loseContext();
+        rendererRef.current = null;
       }
     };
   }, [

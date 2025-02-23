@@ -3,6 +3,74 @@ import OpenAI from 'openai';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 
+// Message formatting components
+const BoldText = ({ text }) => (
+  <p className="font-bold mb-2">{text.replace(/^\*\*|\*\*$/g, '')}</p>
+);
+
+const BulletList = ({ title, items }) => (
+  <div className="space-y-2">
+    {title && <p className="font-semibold">{title}</p>}
+    <ul className="space-y-1.5">
+      {items.map((item, i) => (
+        <li key={i} className="flex items-start space-x-2">
+          <span className="text-sky-500 mt-1">•</span>
+          <span>{item.replace(/^[-•]\s*/, '')}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+const SupplementInfo = ({ title, details }) => (
+  <div className="space-y-2">
+    <p className="font-semibold">{title}</p>
+    <div className="pl-4 space-y-1">
+      {details.map((detail, i) => (
+        <p key={i} className="flex items-start space-x-2">
+          {detail.includes(':') ? (
+            <>
+              <span className="text-sky-500">•</span>
+              <span>
+                <span className="font-medium">{detail.split(':')[0]}:</span>
+                {detail.split(':')[1]}
+              </span>
+            </>
+          ) : (
+            <span>{detail}</span>
+          )}
+        </p>
+      ))}
+    </div>
+  </div>
+);
+
+const formatMessageContent = (content) => {
+  const sections = content.split('\n\n').filter(Boolean);
+  
+  return sections.map((section, index) => {
+    // Bold text
+    if (section.startsWith('**') && section.endsWith('**')) {
+      return <BoldText key={index} text={section} />;
+    }
+    
+    // Bullet list
+    if (section.includes('\n-') || section.includes('\n•')) {
+      const [title, ...items] = section.split('\n').filter(Boolean);
+      return <BulletList key={index} title={title} items={items} />;
+    }
+    
+    // Supplement info
+    if (section.toLowerCase().includes('supplement') || section.includes(':')) {
+      const [title, ...details] = section.split('\n');
+      return <SupplementInfo key={index} title={title} details={details} />;
+    }
+    
+    // Regular paragraph
+    return <p key={index} className="mb-2">{section}</p>;
+  });
+};
+
 // Retry configuration
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -330,8 +398,28 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-      <div className="p-4">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100"
+      style={{ 
+        backgroundColor: '#FFFFFF',
+        isolation: 'isolate',
+        position: 'relative',
+        zIndex: 1,
+        backgroundImage: 'none !important',
+        backdropFilter: 'none !important',
+        WebkitBackdropFilter: 'none !important'
+      }}
+    >
+      <div 
+        style={{
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          background: '#FFFFFF',
+          zIndex: -1,
+          borderRadius: '1rem'
+        }}
+      />
+      <div className="p-4 relative z-2">
         <h2 className="text-lg font-semibold text-gray-900 mb-1">{step.title}</h2>
         <p className="text-sm text-gray-600 mb-4">Please fill in the following information.</p>
         
@@ -825,8 +913,28 @@ const ChatInterface = () => {
   if (showWelcome) {
     return (
       <div className="fixed inset-0 bg-gradient-to-br from-sky-50 to-emerald-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl max-w-lg w-full p-8 shadow-xl">
-          <div className="text-center">
+        <div className="max-w-lg w-full p-8 shadow-xl rounded-2xl card"
+          style={{ 
+            backgroundColor: '#FFFFFF',
+            isolation: 'isolate',
+            position: 'relative',
+            zIndex: 1,
+            backgroundImage: 'none !important',
+            backdropFilter: 'none !important',
+            WebkitBackdropFilter: 'none !important'
+          }}
+        >
+          <div 
+            style={{
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              background: '#FFFFFF',
+              zIndex: -1,
+              borderRadius: '1rem'
+            }}
+          />
+          <div className="text-center relative z-2">
             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-teal-500">
               Welcome to Swallow Hero AI
             </h1>
@@ -906,13 +1014,11 @@ const ChatInterface = () => {
     const currentStepData = QUESTIONNAIRE_STEPS[currentStep];
     return (
       <div className="fixed inset-0 top-16 flex flex-col bg-white">
-        {/* Title Section - Fixed height */}
-        <div className="py-3 px-4 border-b border-gray-200 flex-none">
+        <div className="py-3 px-4 border-b border-gray-200 flex-none bg-white">
           <h1 className="text-xl font-bold text-gray-900 text-center">Health Profile Questionnaire</h1>
         </div>
 
-        {/* Progress Bar - Fixed height */}
-        <div className="px-4 py-2 border-b border-gray-100 flex-none">
+        <div className="px-4 py-2 border-b border-gray-100 flex-none bg-white">
           <div className="flex justify-between mb-1">
             {QUESTIONNAIRE_STEPS.map((step, index) => (
               <div
@@ -928,24 +1034,47 @@ const ChatInterface = () => {
           </p>
         </div>
 
-        {/* Questionnaire Content - Scrollable container */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden bg-white">
           <div className="h-full overflow-y-auto px-4 py-4">
             <div className="max-w-2xl mx-auto">
-              <QuestionnaireStep
-                step={currentStepData}
-                formData={formData}
-                onChange={handleFormChange}
-                onNext={() => {
-                  if (currentStep === QUESTIONNAIRE_STEPS.length - 1) {
-                    handleQuestionnaireComplete();
-                  } else {
-                    setCurrentStep(prev => prev + 1);
-                  }
+              <div className="card p-8 shadow-lg"
+                style={{ 
+                  backgroundColor: '#FFFFFF',
+                  isolation: 'isolate',
+                  position: 'relative',
+                  zIndex: 1,
+                  backgroundImage: 'none !important',
+                  backdropFilter: 'none !important',
+                  WebkitBackdropFilter: 'none !important'
                 }}
-                onBack={currentStep > 0 ? () => setCurrentStep(prev => prev - 1) : null}
-                isLastStep={currentStep === QUESTIONNAIRE_STEPS.length - 1}
-              />
+              >
+                <div 
+                  style={{
+                    content: '""',
+                    position: 'absolute',
+                    inset: 0,
+                    background: '#FFFFFF',
+                    zIndex: -1,
+                    borderRadius: '1rem'
+                  }}
+                />
+                <div className="relative z-2">
+                  <QuestionnaireStep
+                    step={currentStepData}
+                    formData={formData}
+                    onChange={handleFormChange}
+                    onNext={() => {
+                      if (currentStep === QUESTIONNAIRE_STEPS.length - 1) {
+                        handleQuestionnaireComplete();
+                      } else {
+                        setCurrentStep(prev => prev + 1);
+                      }
+                    }}
+                    onBack={currentStep > 0 ? () => setCurrentStep(prev => prev - 1) : null}
+                    isLastStep={currentStep === QUESTIONNAIRE_STEPS.length - 1}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -955,29 +1084,50 @@ const ChatInterface = () => {
 
   return (
     <div className="fixed inset-0 top-16 flex flex-col bg-white">
-      {/* Chat Messages - Make messages scroll within container */}
       <div className="flex-1 min-h-0">
         <div className="h-full overflow-y-auto">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <div className="text-center max-w-xl px-4">
-                <p className="text-lg mb-3 font-semibold text-gray-700">👋 Welcome! How can I help with your supplement needs?</p>
-                <div className="space-y-4">
-                  <div className="space-y-2 text-gray-600 text-sm">
-                    <p>"I want to improve my energy levels"</p>
-                    <p>"What supplements are good for joint health?"</p>
-                    <p>"I need help with my sleep quality"</p>
-                  </div>
-                  <div className="pt-4 border-t border-gray-200">
-                    <Link 
-                      to="/faq"
-                      className="text-sky-500 hover:text-sky-600 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
-                    >
-                      <span>View Frequently Asked Questions</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
+              <div className="text-center max-w-xl px-4 card p-8 shadow-lg"
+                style={{ 
+                  backgroundColor: '#FFFFFF',
+                  isolation: 'isolate',
+                  position: 'relative',
+                  zIndex: 1,
+                  backgroundImage: 'none !important',
+                  backdropFilter: 'none !important',
+                  WebkitBackdropFilter: 'none !important'
+                }}
+              >
+                <div 
+                  style={{
+                    content: '""',
+                    position: 'absolute',
+                    inset: 0,
+                    background: '#FFFFFF',
+                    zIndex: -1,
+                    borderRadius: '1rem'
+                  }}
+                />
+                <div className="relative z-2">
+                  <p className="text-lg mb-3 font-semibold text-gray-700">👋 Welcome! How can I help with your supplement needs?</p>
+                  <div className="space-y-4">
+                    <div className="space-y-2 text-gray-600 text-sm">
+                      <p>"I want to improve my energy levels"</p>
+                      <p>"What supplements are good for joint health?"</p>
+                      <p>"I need help with my sleep quality"</p>
+                    </div>
+                    <div className="pt-4 border-t border-gray-200">
+                      <Link 
+                        to="/faq"
+                        className="text-sky-500 hover:text-sky-600 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
+                      >
+                        <span>View Frequently Asked Questions</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -995,29 +1145,33 @@ const ChatInterface = () => {
                         className={`relative group rounded-2xl px-4 py-3 ${
                           message.sender === 'user'
                             ? 'bg-gradient-to-r from-sky-500 to-teal-500 text-white rounded-tr-none'
-                            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                            : 'card text-gray-800 rounded-tl-none'
                         }`}
+                        style={message.sender === 'ai' ? {
+                          backgroundColor: '#FFFFFF',
+                          isolation: 'isolate',
+                          position: 'relative',
+                          zIndex: 1,
+                          backgroundImage: 'none !important',
+                          backdropFilter: 'none !important',
+                          WebkitBackdropFilter: 'none !important',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                        } : {}}
                       >
                         {message.sender === 'ai' && (
-                          <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => copyToClipboard(message.text, index)}
-                              className="p-1 hover:bg-gray-200 rounded-full transition-colors"
-                              title="Copy message"
-                            >
-                              {copiedMessageId === index ? (
-                                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                              ) : (
-                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                                </svg>
-                              )}
-                            </button>
-                          </div>
+                          <div 
+                            style={{
+                              content: '""',
+                              position: 'absolute',
+                              inset: 0,
+                              background: '#FFFFFF',
+                              zIndex: -1,
+                              borderRadius: '1rem',
+                              borderTopLeftRadius: 0
+                            }}
+                          />
                         )}
-                        <div className="markdown-content">
+                        <div className="relative z-2 markdown-content">
                           {message.sender === 'ai' ? (
                             <ReactMarkdown>
                               {message.text}
@@ -1052,8 +1206,29 @@ const ChatInterface = () => {
                 ))}
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-2.5">
-                      <div className="flex space-x-2">
+                    <div className="bg-white card rounded-2xl rounded-tl-none px-4 py-2.5"
+                      style={{ 
+                        backgroundColor: '#FFFFFF',
+                        isolation: 'isolate',
+                        position: 'relative',
+                        zIndex: 1,
+                        backgroundImage: 'none !important',
+                        backdropFilter: 'none !important',
+                        WebkitBackdropFilter: 'none !important'
+                      }}
+                    >
+                      <div 
+                        style={{
+                          content: '""',
+                          position: 'absolute',
+                          inset: 0,
+                          background: '#FFFFFF',
+                          zIndex: -1,
+                          borderRadius: '1rem',
+                          borderTopLeftRadius: 0
+                        }}
+                      />
+                      <div className="relative z-2 flex space-x-2">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
@@ -1068,7 +1243,6 @@ const ChatInterface = () => {
         </div>
       </div>
 
-      {/* Input Form - Fixed at bottom */}
       <div className="border-t border-gray-200 bg-white">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <form onSubmit={handleSubmit} className="relative" noValidate>

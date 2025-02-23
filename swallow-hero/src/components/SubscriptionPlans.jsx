@@ -56,17 +56,32 @@ const SubscriptionPlans = () => {
             key={plan.name} 
             className={`relative rounded-2xl overflow-hidden transition-all duration-300
               ${plan.highlight 
-                ? 'bg-white/95 shadow-2xl ring-2 ring-sky-500 transform hover:-translate-y-2 md:scale-105' 
-                : 'bg-white/90 shadow-xl hover:shadow-2xl transform hover:-translate-y-2'}`}
+                ? 'shadow-2xl ring-2 ring-sky-500 transform hover:-translate-y-2 md:scale-105' 
+                : 'shadow-xl hover:shadow-2xl transform hover:-translate-y-2'}`}
+            style={{ 
+              backgroundColor: '#FFFFFF',
+              isolation: 'isolate',
+              position: 'relative',
+              zIndex: 1
+            }}
           >
+            <div 
+              style={{
+                content: '""',
+                position: 'absolute',
+                inset: 0,
+                background: '#FFFFFF',
+                zIndex: -1
+              }}
+            />
             {plan.highlight && (
-              <div className="absolute top-0 inset-x-0">
+              <div className="absolute top-0 inset-x-0 z-10">
                 <div className="bg-gradient-to-r from-sky-500 to-teal-500 text-white px-4 py-2 text-sm font-medium text-center transform">
                   Most Popular
                 </div>
               </div>
             )}
-            <div className={`p-6 sm:p-8 ${plan.highlight ? 'pt-12' : ''}`}>
+            <div className={`p-6 sm:p-8 ${plan.highlight ? 'pt-12' : ''} relative z-2`}>
               <div className="flex flex-col items-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                 <div className="flex items-baseline mb-6">
@@ -74,7 +89,7 @@ const SubscriptionPlans = () => {
                   <span className="text-gray-700 ml-2 text-base sm:text-lg">/{plan.period}</span>
                 </div>
               </div>
-              <div className="bg-gray-50/95 rounded-xl p-4 sm:p-6 mb-6">
+              <div className="bg-gray-50 rounded-xl p-4 sm:p-6 mb-6" style={{ backgroundColor: '#F9FAFB' }}>
                 <ul className="space-y-3 sm:space-y-4">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start">

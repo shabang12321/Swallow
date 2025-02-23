@@ -15,11 +15,29 @@ const FAQSection = ({ title, faqs }) => {
         {faqs.map((faq, index) => (
           <div
             key={index}
-            className="border border-gray-200 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg bg-white/60 backdrop-blur-sm"
+            className="faq-card border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-lg"
+            style={{ 
+              backgroundColor: '#FFFFFF',
+              isolation: 'isolate',
+              position: 'relative',
+              zIndex: 1,
+              backgroundImage: 'none !important',
+              backdropFilter: 'none !important',
+              WebkitBackdropFilter: 'none !important'
+            }}
           >
+            <div 
+              style={{
+                content: '""',
+                position: 'absolute',
+                inset: 0,
+                background: '#FFFFFF',
+                zIndex: -1
+              }}
+            />
             <button
               onClick={() => toggleQuestion(index)}
-              className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-white/80 transition-colors duration-200"
+              className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors duration-200 relative z-2"
             >
               <span className="font-medium text-gray-900 pr-8 text-lg">{faq.question}</span>
               <svg
@@ -34,7 +52,7 @@ const FAQSection = ({ title, faqs }) => {
               </svg>
             </button>
             {openIndex === index && (
-              <div className="px-6 py-4 bg-gradient-to-br from-sky-50/50 to-teal-50/50 border-t border-gray-200">
+              <div className="px-6 py-4 border-t border-gray-200 relative z-2" style={{ backgroundColor: '#F9FAFB' }}>
                 <p className="text-gray-600 text-lg leading-relaxed">{faq.answer}</p>
               </div>
             )}
@@ -122,7 +140,27 @@ const FAQPage = () => {
     <div className="flex-1">
       <div className="py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl shadow-xl p-8 hover:shadow-2xl transition-shadow">
+          <div className="rounded-xl shadow-xl p-8 hover:shadow-2xl transition-shadow"
+            style={{ 
+              backgroundColor: '#FFFFFF',
+              isolation: 'isolate',
+              position: 'relative',
+              zIndex: 1,
+              backgroundImage: 'none !important',
+              backdropFilter: 'none !important',
+              WebkitBackdropFilter: 'none !important'
+            }}
+          >
+            <div 
+              style={{
+                content: '""',
+                position: 'absolute',
+                inset: 0,
+                background: '#FFFFFF',
+                zIndex: -1,
+                borderRadius: '0.75rem'
+              }}
+            />
             <header className="text-center mb-12">
               <h1 className="text-4xl md:text-5xl font-bold hero-gradient mb-6">
                 Frequently Asked Questions

@@ -1,5 +1,3 @@
-import { ERROR_MESSAGES } from '../config/constants';
-
 // Error handling utilities
 export class AppError extends Error {
   constructor(message, code, details = {}) {
@@ -10,7 +8,7 @@ export class AppError extends Error {
   }
 }
 
-export const handleError = (error, defaultMessage = ERROR_MESSAGES.serverError) => {
+export const handleError = (error, defaultMessage = 'An unexpected error occurred') => {
   console.error('Error details:', {
     name: error.name,
     message: error.message,
@@ -24,11 +22,11 @@ export const handleError = (error, defaultMessage = ERROR_MESSAGES.serverError) 
   }
 
   if (error.code === 'permission-denied') {
-    return ERROR_MESSAGES.authError;
+    return 'You do not have permission to perform this action.';
   }
 
   if (error.name === 'NetworkError' || !navigator.onLine) {
-    return ERROR_MESSAGES.networkError;
+    return 'Please check your internet connection and try again.';
   }
 
   return defaultMessage;
@@ -79,7 +77,7 @@ export const formatUserProfile = (data) => {
     {
       title: '❤️ Health Status',
       items: [
-        ['Concerns', data.healthConcerns.join(', ')],
+        ['Concerns', data.healthConcerns?.join(', ') || 'None'],
         ['Medical', data.medicalConditions || 'None'],
         ['Medications', data.medications || 'None'],
       ]

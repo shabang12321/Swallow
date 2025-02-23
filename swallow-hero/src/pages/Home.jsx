@@ -77,7 +77,7 @@ const Home = () => {
       </div>
 
       {/* How It Works Section */}
-      <div className="py-16 bg-gradient-to-br from-sky-50/50 to-emerald-50/50">
+      <div className="py-16 bg-gradient-to-br from-sky-50 to-emerald-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold hero-gradient mb-4">How Swallow Hero Works</h2>
@@ -94,7 +94,7 @@ const Home = () => {
             </div>
             
             {/* Step 1 */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-8 shadow-lg relative transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-sky-100/50">
+            <div className="rounded-xl p-8 shadow-lg relative transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-sky-100" style={{ backgroundColor: '#FFFFFF', isolation: 'isolate', position: 'relative', zIndex: 1 }}>
               <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-r from-sky-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 1
               </div>
@@ -112,7 +112,7 @@ const Home = () => {
             </div>
 
             {/* Step 2 */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-8 shadow-lg relative transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-teal-100/50">
+            <div className="rounded-xl p-8 shadow-lg relative transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-teal-100" style={{ backgroundColor: '#FFFFFF', isolation: 'isolate', position: 'relative', zIndex: 1 }}>
               <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-r from-teal-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 2
               </div>
@@ -130,7 +130,7 @@ const Home = () => {
             </div>
 
             {/* Step 3 */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-8 shadow-lg relative transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-green-100/50">
+            <div className="rounded-xl p-8 shadow-lg relative transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-green-100" style={{ backgroundColor: '#FFFFFF', isolation: 'isolate', position: 'relative', zIndex: 1 }}>
               <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 3
               </div>
@@ -168,7 +168,7 @@ const Home = () => {
       </div>
 
       {/* Subscription Plans */}
-      <div className="py-12 sm:py-20 bg-gradient-to-br from-sky-50/30 to-emerald-50/30 backdrop-blur-sm">
+      <div className="py-12 sm:py-20 bg-gradient-to-br from-sky-50 to-emerald-50">
         <SubscriptionPlans />
       </div>
     </div>

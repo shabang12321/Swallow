@@ -329,7 +329,7 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-transparent py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6" style={{ backgroundColor: '#FFFFFF', position: 'relative', zIndex: 10 }}>
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6 bg-gradient-to-br from-white to-sky-50/30" style={{ position: 'relative', zIndex: 10 }}>
         <div className="text-center mb-6">
           <h2 className={`text-3xl font-bold bg-gradient-to-r ${getThemeGradient(formData.profileTheme)} bg-clip-text text-transparent`}>Your Profile</h2>
           <p className="mt-2 text-sm text-gray-700">Keep your information up to date</p>
