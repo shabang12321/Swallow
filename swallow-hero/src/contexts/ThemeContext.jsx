@@ -37,10 +37,10 @@ export const ThemeProvider = ({ children }) => {
       case 'sunset':
         return 'from-purple-600 via-pink-600 to-rose-600';
       case 'citrus':
-        return 'from-amber-500 via-yellow-500 to-lime-500';
+        return 'from-orange-500 via-yellow-400 to-lime-500';
       case 'ocean':
       default:
-        return 'from-sky-600 via-cyan-600 to-teal-600';
+        return 'from-sky-500 via-teal-500 to-green-500';
     }
   };
 

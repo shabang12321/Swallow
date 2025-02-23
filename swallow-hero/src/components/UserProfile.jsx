@@ -31,7 +31,7 @@ const UserProfile = () => {
     profileTheme: 'ocean',
   });
   const [notifications, setNotifications] = useState([]);
-  const notificationDuration = 4000; // 4 seconds
+  const notificationDuration = 1500; // Reduced from 4000ms to 1500ms for faster feedback
 
   const addNotification = useCallback((type, message) => {
     // Clear any existing notifications first
@@ -45,7 +45,7 @@ const UserProfile = () => {
         setNotifications(prev => prev.filter(n => n.id !== id));
       }, notificationDuration);
     }
-  }, []);
+  }, [notificationDuration]);
 
   // Handle online/offline status
   useEffect(() => {
@@ -286,13 +286,37 @@ const UserProfile = () => {
     setError(null);
 
     try {
+      // Show saving state first
+      addNotification('saving', 'Saving your profile...');
+      
+      // Save the data
       await setDoc(doc(db, 'users', user.uid), {
         ...formData,
         email: user.email,
         updatedAt: new Date(),
+        profileCompleted: true
       }, { merge: true });
 
-      addNotification('success', 'Profile saved successfully!');
+      // Clear saving notification and show success
+      setNotifications([]); // Clear immediately
+      setTimeout(() => {
+        addNotification('success', 'Profile saved successfully!');
+        
+        // Start fade out animation after success is shown
+        setTimeout(() => {
+          // Add fade-out class to notification
+          const notification = document.querySelector('.notification-container');
+          if (notification) {
+            notification.classList.add('fade-out');
+          }
+          
+          // Navigate after fade out
+          setTimeout(() => {
+            navigate('/chat');
+          }, 300);
+        }, 1000);
+      }, 100);
+
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -431,8 +455,8 @@ const UserProfile = () => {
 
               <label className={`relative flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all cursor-pointer ${
                 formData.profileTheme === 'citrus' 
-                  ? 'border-amber-500 bg-gradient-to-r from-amber-50 via-yellow-50 to-lime-50 shadow-md' 
-                  : 'border-gray-200 hover:border-amber-200'
+                  ? 'border-orange-500 bg-gradient-to-r from-orange-50 via-yellow-50 to-lime-50 shadow-md' 
+                  : 'border-gray-200 hover:border-orange-300'
               }`}>
                 <input
                   type="radio"
@@ -442,8 +466,8 @@ const UserProfile = () => {
                   onChange={handleChange}
                   className="sr-only"
                 />
-                <div className="h-8 w-full rounded-md bg-gradient-to-r from-amber-400 via-yellow-500 to-lime-600 shadow-sm" />
-                <span className="text-xs font-medium mt-2 bg-gradient-to-r from-amber-600 via-yellow-600 to-lime-700 bg-clip-text text-transparent">Citrus Burst</span>
+                <div className="h-8 w-full rounded-md bg-gradient-to-r from-orange-500 via-yellow-400 to-lime-500 shadow-sm" />
+                <span className="text-xs font-medium mt-2 bg-gradient-to-r from-orange-500 via-yellow-400 to-lime-500 bg-clip-text text-transparent">Citrus Burst</span>
               </label>
             </div>
           </div>
@@ -670,7 +694,7 @@ const UserProfile = () => {
                   }`
               }`}
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Saving...' : 'Save & Chat'}
             </button>
           </div>
         </form>
@@ -681,33 +705,30 @@ const UserProfile = () => {
         {notifications.map(({ id, type, message }) => (
           <div
             key={id}
-            className={`relative overflow-hidden rounded-lg shadow-lg ${
-              type === 'success' ? 'bg-white' : 'bg-white'
-            } p-4 w-72 transform transition-transform duration-300 ease-in-out`}
-            style={{ animation: 'slideIn 0.3s ease-out' }}
+            className="notification-container relative overflow-hidden rounded-lg shadow-xl bg-white backdrop-blur-sm bg-white/90 p-4 w-80 transform transition-all duration-500 ease-out animate-notification-slide-in"
           >
             <div className="flex items-center">
               {type === 'success' ? (
-                <div className={`flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r ${getThemeGradient(formData.profileTheme)} flex items-center justify-center`}>
-                  <svg className="w-4 h-4 text-white" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                <div className={`flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r ${getThemeGradient(formData.profileTheme)} flex items-center justify-center animate-scale-check`}>
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 </div>
               ) : type === 'error' ? (
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l8 8m0-8l-8 8" />
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                 </div>
               ) : (
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center animate-spin">
-                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-gray-500 to-gray-600 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
                 </div>
               )}
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">
+              <div className="ml-4 flex-1">
+                <p className="text-sm font-semibold text-gray-900">
                   {message}
                 </p>
               </div>
@@ -719,7 +740,7 @@ const UserProfile = () => {
                 <div
                   className={`h-full bg-gradient-to-r ${getThemeGradient(formData.profileTheme)}`}
                   style={{
-                    animation: `shrink ${notificationDuration}ms linear forwards`,
+                    animation: `shrink ${notificationDuration}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`,
                     transformOrigin: 'left'
                   }}
                 />
@@ -734,7 +755,7 @@ const UserProfile = () => {
         <defs>
           <linearGradient id="gradient-ocean" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#0ea5e9" />
-            <stop offset="50%" stopColor="#14b8a6" />
+            <stop offset="35%" stopColor="#14b8a6" />
             <stop offset="100%" stopColor="#22c55e" />
           </linearGradient>
           <linearGradient id="gradient-sunset" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -753,11 +774,11 @@ const UserProfile = () => {
   );
 };
 
-// Add these styles at the end of the file
+// Update the styles at the end of the file
 const styles = `
 @keyframes slideIn {
   from {
-    transform: translateX(-100%);
+    transform: translateX(-20px);
     opacity: 0;
   }
   to {
@@ -773,6 +794,38 @@ const styles = `
   to {
     width: 0%;
   }
+}
+
+@keyframes scaleCheck {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-notification-slide-in {
+  animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-scale-check {
+  animation: scaleCheck 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.notification-container {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification-container.fade-out {
+  transform: translateX(-20px);
+  opacity: 0;
 }
 `;
 

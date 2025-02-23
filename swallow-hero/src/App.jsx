@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './config/firebase';
 import Navigation from './components/Navigation';
@@ -14,6 +14,8 @@ import UserProfile from './components/UserProfile';
 import ClickSpark from './components/ClickSpark';
 import BackgroundParticles from './components/BackgroundParticles';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from './config/firebase';
 
 // Scroll to top component
 const ScrollToTop = () => {
@@ -95,6 +97,48 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Profile Required Route Component
+const ProfileRequiredRoute = ({ children }) => {
+  const [user, loading] = useAuthState(auth);
+  const [profileChecked, setProfileChecked] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkProfile = async () => {
+      if (!user) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const isProfileComplete = userDoc.exists() && userDoc.data().profileCompleted;
+        setHasProfile(isProfileComplete);
+        setProfileChecked(true);
+
+        // If on a protected route and profile is not complete, redirect to profile
+        if (!isProfileComplete && location.pathname !== '/profile') {
+          navigate('/profile');
+        }
+      } catch (error) {
+        console.error('Error checking profile:', error);
+        setProfileChecked(true);
+      }
+    };
+
+    checkProfile();
+  }, [user, location.pathname, navigate]);
+
+  if (loading || !profileChecked) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-screen p-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  return <ProtectedRoute>{children}</ProtectedRoute>;
+};
+
 const App = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [error, setError] = useState(null);
@@ -136,9 +180,9 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/chat" element={
-              <ProtectedRoute>
+              <ProfileRequiredRoute>
                 <ChatInterface />
-              </ProtectedRoute>
+              </ProfileRequiredRoute>
             } />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/about" element={<About />} />
