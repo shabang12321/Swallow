@@ -353,38 +353,38 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-transparent py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6 bg-gradient-to-br from-white to-sky-50/30" style={{ position: 'relative', zIndex: 10 }}>
+      <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 bg-gradient-to-br from-white to-sky-50/30 dark:from-gray-800 dark:to-gray-900/80" style={{ position: 'relative', zIndex: 10 }}>
         <div className="text-center mb-6">
           <h2 className={`text-3xl font-bold bg-gradient-to-r ${getThemeGradient(formData.profileTheme)} bg-clip-text text-transparent`}>Your Profile</h2>
-          <p className="mt-2 text-sm text-gray-700">Keep your information up to date</p>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">Keep your information up to date</p>
         </div>
 
         {/* Success message */}
         {success && (
-          <div className="mb-4 bg-green-100 border-l-4 border-green-500 p-3 rounded-lg shadow-sm" role="alert">
+          <div className="mb-4 bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 p-3 rounded-lg shadow-sm" role="alert">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-green-800 font-medium">{success}</p>
+                <p className="text-sm text-green-800 dark:text-green-200 font-medium">{success}</p>
               </div>
             </div>
           </div>
         )}
 
         {isOffline && (
-          <div className="mb-4 bg-yellow-100 border-l-4 border-yellow-500 p-3 rounded-lg shadow-sm" role="alert">
+          <div className="mb-4 bg-yellow-100 dark:bg-yellow-900/30 border-l-4 border-yellow-500 p-3 rounded-lg shadow-sm" role="alert">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-yellow-600" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-yellow-600 dark:text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-yellow-800 font-medium">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
                   You are currently offline. Changes will be saved when you reconnect.
                 </p>
               </div>
@@ -393,15 +393,15 @@ const UserProfile = () => {
         )}
 
         {error && (
-          <div className="mb-4 bg-red-100 border-l-4 border-red-500 p-3 rounded-lg shadow-sm" role="alert">
+          <div className="mb-4 bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 p-3 rounded-lg shadow-sm" role="alert">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-red-600 dark:text-red-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-800 font-medium">{error}</p>
+                <p className="text-sm text-red-800 dark:text-red-200 font-medium">{error}</p>
               </div>
             </div>
           </div>
@@ -421,8 +421,8 @@ const UserProfile = () => {
             <div className="grid grid-cols-3 gap-3">
               <label className={`relative flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all cursor-pointer ${
                 formData.profileTheme === 'ocean' 
-                  ? 'border-sky-500 bg-gradient-to-r from-sky-50 via-teal-50 to-green-50 shadow-md' 
-                  : 'border-gray-200 hover:border-sky-200'
+                  ? 'border-sky-500 bg-gradient-to-r from-sky-50 via-teal-50 to-green-50 dark:from-sky-900/20 dark:via-teal-900/20 dark:to-green-900/20 shadow-md' 
+                  : 'border-gray-200 dark:border-gray-700 hover:border-sky-200 dark:hover:border-sky-700'
               }`}>
                 <input
                   type="radio"
@@ -438,8 +438,8 @@ const UserProfile = () => {
 
               <label className={`relative flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all cursor-pointer ${
                 formData.profileTheme === 'sunset' 
-                  ? 'border-purple-500 bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 shadow-md' 
-                  : 'border-gray-200 hover:border-purple-200'
+                  ? 'border-purple-500 bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-rose-900/20 shadow-md' 
+                  : 'border-gray-200 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700'
               }`}>
                 <input
                   type="radio"
@@ -455,8 +455,8 @@ const UserProfile = () => {
 
               <label className={`relative flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all cursor-pointer ${
                 formData.profileTheme === 'citrus' 
-                  ? 'border-orange-500 bg-gradient-to-r from-orange-50 via-yellow-50 to-lime-50 shadow-md' 
-                  : 'border-gray-200 hover:border-orange-300'
+                  ? 'border-orange-500 bg-gradient-to-r from-orange-50 via-yellow-50 to-lime-50 dark:from-orange-900/20 dark:via-yellow-900/20 dark:to-lime-900/20 shadow-md' 
+                  : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700'
               }`}>
                 <input
                   type="radio"
@@ -484,7 +484,7 @@ const UserProfile = () => {
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -495,8 +495,8 @@ const UserProfile = () => {
                   required
                   className={`mt-1 block w-full rounded-lg border shadow-sm px-3 py-2 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-1 ${
                     validationErrors.fullName 
-                      ? 'border-red-400 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50'
-                      : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500 bg-white'
+                      ? 'border-red-400 text-red-900 dark:text-red-200 placeholder-red-300 dark:placeholder-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-sky-500 focus:border-sky-500 bg-white dark:bg-gray-700 dark:text-white'
                   }`}
                 />
                 {validationErrors.fullName && (
@@ -505,7 +505,7 @@ const UserProfile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Date of Birth <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -516,8 +516,8 @@ const UserProfile = () => {
                   required
                   className={`mt-1 block w-full rounded-lg border shadow-sm px-4 py-2.5 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 ${
                     validationErrors.dateOfBirth
-                      ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500'
+                      ? 'border-red-300 text-red-900 dark:text-red-200 placeholder-red-300 focus:ring-red-500 focus:border-red-500 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-sky-500 focus:border-sky-500 dark:bg-gray-700 dark:text-white'
                   }`}
                 />
                 {validationErrors.dateOfBirth && (
@@ -526,7 +526,7 @@ const UserProfile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Gender <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -536,8 +536,8 @@ const UserProfile = () => {
                   required
                   className={`mt-1 block w-full rounded-lg border shadow-sm px-4 py-2.5 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 ${
                     validationErrors.gender
-                      ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500'
+                      ? 'border-red-300 text-red-900 dark:text-red-200 placeholder-red-300 focus:ring-red-500 focus:border-red-500 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-sky-500 focus:border-sky-500 dark:bg-gray-700 dark:text-white'
                   }`}
                 >
                   <option value="">Select Gender</option>
@@ -552,7 +552,7 @@ const UserProfile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
                 <input
                   type="tel"
                   name="phoneNumber"
@@ -560,8 +560,8 @@ const UserProfile = () => {
                   onChange={handleChange}
                   className={`mt-1 block w-full rounded-lg border shadow-sm px-4 py-2.5 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 ${
                     validationErrors.phoneNumber
-                      ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500'
+                      ? 'border-red-300 text-red-900 dark:text-red-200 placeholder-red-300 focus:ring-red-500 focus:border-red-500 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-sky-500 focus:border-sky-500 dark:bg-gray-700 dark:text-white'
                   }`}
                   placeholder="Your phone number"
                 />
@@ -584,7 +584,7 @@ const UserProfile = () => {
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Height (cm)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Height (cm)</label>
                 <input
                   type="number"
                   name="height"
@@ -592,8 +592,8 @@ const UserProfile = () => {
                   onChange={handleChange}
                   className={`mt-1 block w-full rounded-lg border shadow-sm px-4 py-2.5 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 ${
                     validationErrors.height
-                      ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500'
+                      ? 'border-red-300 text-red-900 dark:text-red-200 placeholder-red-300 focus:ring-red-500 focus:border-red-500 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-sky-500 focus:border-sky-500 dark:bg-gray-700 dark:text-white'
                   }`}
                 />
                 {validationErrors.height && (
@@ -602,7 +602,7 @@ const UserProfile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Weight (kg)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Weight (kg)</label>
                 <input
                   type="number"
                   name="weight"
@@ -610,8 +610,8 @@ const UserProfile = () => {
                   onChange={handleChange}
                   className={`mt-1 block w-full rounded-lg border shadow-sm px-4 py-2.5 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 ${
                     validationErrors.weight
-                      ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500'
+                      ? 'border-red-300 text-red-900 dark:text-red-200 placeholder-red-300 focus:ring-red-500 focus:border-red-500 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-sky-500 focus:border-sky-500 dark:bg-gray-700 dark:text-white'
                   }`}
                 />
                 {validationErrors.weight && (
@@ -633,7 +633,7 @@ const UserProfile = () => {
             </div>
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Medical Conditions</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Medical Conditions</label>
                 <textarea
                   name="medicalConditions"
                   value={formData.medicalConditions}
@@ -641,8 +641,8 @@ const UserProfile = () => {
                   rows="3"
                   className={`mt-1 block w-full rounded-lg border shadow-sm px-4 py-2.5 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 ${
                     validationErrors.medicalConditions
-                      ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500'
+                      ? 'border-red-300 text-red-900 dark:text-red-200 placeholder-red-300 focus:ring-red-500 focus:border-red-500 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-sky-500 focus:border-sky-500 dark:bg-gray-700 dark:text-white'
                   }`}
                   placeholder="List any medical conditions (optional)"
                 />
@@ -652,7 +652,7 @@ const UserProfile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Allergies</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Allergies</label>
                 <textarea
                   name="allergies"
                   value={formData.allergies}
@@ -660,8 +660,8 @@ const UserProfile = () => {
                   rows="3"
                   className={`mt-1 block w-full rounded-lg border shadow-sm px-4 py-2.5 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 ${
                     validationErrors.allergies
-                      ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500'
+                      ? 'border-red-300 text-red-900 dark:text-red-200 placeholder-red-300 focus:ring-red-500 focus:border-red-500 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-sky-500 focus:border-sky-500 dark:bg-gray-700 dark:text-white'
                   }`}
                   placeholder="List any allergies (optional)"
                 />
@@ -673,7 +673,7 @@ const UserProfile = () => {
           </div>
 
           {/* Required fields note */}
-          <div className="text-sm text-gray-700 mt-2">
+          <div className="text-sm text-gray-700 dark:text-gray-300 mt-2">
             <span className="text-red-500">*</span> Required fields
           </div>
 
@@ -705,7 +705,7 @@ const UserProfile = () => {
         {notifications.map(({ id, type, message }) => (
           <div
             key={id}
-            className="notification-container relative overflow-hidden rounded-lg shadow-xl bg-white backdrop-blur-sm bg-white/90 p-4 w-80 transform transition-all duration-500 ease-out animate-notification-slide-in"
+            className="notification-container relative overflow-hidden rounded-lg shadow-xl bg-white dark:bg-gray-800 backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 p-4 w-80 transform transition-all duration-500 ease-out animate-notification-slide-in"
           >
             <div className="flex items-center">
               {type === 'success' ? (
@@ -728,7 +728,7 @@ const UserProfile = () => {
                 </div>
               )}
               <div className="ml-4 flex-1">
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   {message}
                 </p>
               </div>
@@ -736,7 +736,7 @@ const UserProfile = () => {
 
             {/* Progress bar - only show for success/error messages */}
             {type !== 'saving' && (
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100 dark:bg-gray-700">
                 <div
                   className={`h-full bg-gradient-to-r ${getThemeGradient(formData.profileTheme)}`}
                   style={{
