@@ -16,6 +16,7 @@ import BackgroundParticles from './components/BackgroundParticles';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from './config/firebase';
+import DarkModeToggle from './components/DarkModeToggle';
 
 // Scroll to top component
 const ScrollToTop = () => {
@@ -195,6 +196,7 @@ const App = () => {
               </ProtectedRoute>
             } />
           </Routes>
+          <DarkModeToggle />
           <ClickSpark />
           <BackgroundParticles />
         </div>

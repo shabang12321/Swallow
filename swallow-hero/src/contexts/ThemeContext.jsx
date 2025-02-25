@@ -21,6 +21,7 @@ export const ThemeProvider = ({ children }) => {
     // Otherwise check for preferred color scheme
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Apply dark mode class to html element
   useEffect(() => {
@@ -87,7 +88,17 @@ export const ThemeProvider = ({ children }) => {
   };
 
   const toggleDarkMode = () => {
-    setDarkMode(prev => !prev);
+    setIsTransitioning(true);
+    
+    // Add a slight delay to make the transition smoother
+    setTimeout(() => {
+      setDarkMode(prev => !prev);
+      
+      // Reset transitioning state after the transition completes
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 500);
+    }, 50);
   };
 
   const value = {
@@ -95,7 +106,8 @@ export const ThemeProvider = ({ children }) => {
     setProfileTheme,
     getThemeGradient,
     darkMode,
-    toggleDarkMode
+    toggleDarkMode,
+    isTransitioning
   };
 
   return (
