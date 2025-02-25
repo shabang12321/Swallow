@@ -17,6 +17,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from './config/firebase';
 import DarkModeToggle from './components/DarkModeToggle';
+import FeedbackButton from './components/FeedbackButton';
 
 // Scroll to top component
 const ScrollToTop = () => {
@@ -197,6 +198,7 @@ const App = () => {
             } />
           </Routes>
           <DarkModeToggle />
+          <FeedbackButton />
           <ClickSpark />
           <BackgroundParticles />
         </div>
