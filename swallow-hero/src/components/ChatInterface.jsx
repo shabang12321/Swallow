@@ -306,7 +306,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                 value={Math.min(Math.max(value || field.defaultValue, field.min), field.max)}
                 onChange={(e) => onChange(field.name, e.target.value)}
                 onFocus={() => handleFieldFocus(field.name)}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-sky-500 dark:accent-sky-400"
               />
               {field.allowCustomInput && !showCustomInput[field.name] ? (
                 <button
@@ -314,7 +314,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                     setShowCustomInput(prev => ({ ...prev, [field.name]: true }));
                     onChange(field.name, value);
                   }}
-                  className="w-20 px-3 py-1 text-sm bg-white border border-gray-200 rounded hover:border-sky-500 transition-colors text-center"
+                  className="w-20 px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded hover:border-sky-500 transition-colors text-center dark:text-white"
                 >
                   {value} {field.name === 'height' ? 'cm' : 'kg'}
                 </button>
@@ -343,16 +343,16 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                     }
                     setShowCustomInput(prev => ({ ...prev, [field.name]: false }));
                   }}
-                  className="w-20 px-3 py-1 text-sm border border-gray-200 rounded focus:border-sky-500 focus:ring-1 focus:ring-sky-200 text-center"
+                  className="w-20 px-3 py-1 text-sm border border-gray-200 dark:border-gray-600 rounded focus:border-sky-500 focus:ring-1 focus:ring-sky-200 text-center dark:bg-gray-700 dark:text-white"
                   autoFocus
                 />
               ) : (
-                <span className="w-20 text-center text-sm text-gray-600">
+                <span className="w-20 text-center text-sm text-gray-600 dark:text-gray-300">
                   {value} {field.name === 'height' ? 'cm' : 'kg'}
                 </span>
               )}
             </div>
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
               <span>{field.min} {field.name === 'height' ? 'cm' : 'kg'}</span>
               <span>{field.max} {field.name === 'height' ? 'cm' : 'kg'}</span>
             </div>
@@ -367,9 +367,9 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
               onChange={(e) => onChange(field.name, e.target.value)}
               onFocus={() => handleFieldFocus(field.name)}
               className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
-                ${error ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
-                ${value ? 'border-green-200' : ''}
-                appearance-none bg-white`}
+                ${error ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200 dark:border-gray-600'}
+                ${value ? 'border-green-200 dark:border-green-700' : ''}
+                appearance-none bg-white dark:bg-gray-700 dark:text-white`}
             >
               <option value="">Select {field.label.toLowerCase()}...</option>
               {field.options.map(option => (
@@ -377,7 +377,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
               ))}
             </select>
             <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -386,9 +386,9 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
 
       case 'multiselect':
         return (
-          <div className="space-y-1 p-2 border rounded-md bg-white">
+          <div className="space-y-1 p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
             {field.options.map(option => (
-              <label key={option} className="flex items-center space-x-2 p-1.5 hover:bg-gray-50 rounded transition-colors duration-150">
+              <label key={option} className="flex items-center space-x-2 p-1.5 hover:bg-gray-50 dark:hover:bg-gray-600 rounded transition-colors duration-150">
                 <input
                   type="checkbox"
                   checked={formData[field.name]?.includes(option) || false}
@@ -402,7 +402,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                   }}
                   className="w-4 h-4 rounded text-sky-500 focus:ring-1 focus:ring-sky-200 transition-all duration-200"
                 />
-                <span className="text-sm text-gray-700">{option}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{option}</span>
               </label>
             ))}
           </div>
@@ -417,7 +417,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                 className={`flex-1 text-center p-2 border rounded-lg cursor-pointer transition-all duration-200
                   ${value === option 
                     ? 'bg-sky-500 text-white border-sky-500' 
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-sky-500'}`}
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:border-sky-500 dark:hover:border-sky-400'}`}
               >
                 <input
                   type="radio"
@@ -442,17 +442,17 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
             onFocus={() => handleFieldFocus(field.name)}
             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
             className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
-              ${error && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'}
-              ${value && !error ? 'border-green-200' : ''}`}
+              ${error && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 dark:border-gray-600 focus:ring-sky-200'}
+              ${value && !error ? 'border-green-200 dark:border-green-700' : ''}
+              dark:bg-gray-700 dark:text-white`}
           />
         );
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100"
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300"
       style={{ 
-        backgroundColor: '#FFFFFF',
         isolation: 'isolate',
         position: 'relative',
         zIndex: 1,
@@ -461,37 +461,27 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
         WebkitBackdropFilter: 'none !important'
       }}
     >
-      <div 
-        style={{
-          content: '""',
-          position: 'absolute',
-          inset: 0,
-          background: '#FFFFFF',
-          zIndex: -1,
-          borderRadius: '1rem'
-        }}
-      />
       <div className="p-4 relative z-2">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">{step.title}</h2>
-        <p className="text-sm text-gray-600 mb-4">Please fill in the following information.</p>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{step.title}</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Please fill in the following information.</p>
         
         <div className="space-y-6">
           {step.fields.map(field => (
             <div key={field.name} className="space-y-2">
-              <label className="block text-base font-semibold text-gray-800">
-                {field.label} {field.required && <span className="text-red-500">*</span>}
+              <label className="block text-base font-semibold text-gray-800 dark:text-gray-200">
+                {field.label} {field.required && <span className="text-red-500 dark:text-red-400">*</span>}
               </label>
               
               {renderField(field)}
               
               {errors[field.name] && touched[field.name] && (
-                <p className="text-xs text-red-500">
+                <p className="text-xs text-red-500 dark:text-red-400">
                   {errors[field.name]}
                 </p>
               )}
               
               {field.description && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {field.description}
                 </p>
               )}
@@ -500,11 +490,11 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
         </div>
       </div>
 
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center rounded-b-xl">
         <button
           type="button"
           onClick={onBack}
-          className={`btn-outline btn-sm text-gray-600 ${!onBack ? 'opacity-0 pointer-events-none' : ''}`}
+          className={`btn-outline btn-sm text-gray-600 dark:text-gray-300 ${!onBack ? 'opacity-0 pointer-events-none' : ''}`}
         >
           <svg className="w-4 h-4 icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
@@ -876,7 +866,7 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
       // Check if text is wrapped in bold markers
       if (section.startsWith('**') && section.endsWith('**')) {
         return (
-          <p key={index} className="font-bold mb-2">
+          <p key={index} className="font-bold mb-2 text-gray-900 dark:text-white">
             {section.replace(/^\*\*|\*\*$/g, '')}
           </p>
         );
@@ -887,12 +877,12 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
         const [title, ...items] = section.split('\n').filter(Boolean);
         return (
           <div key={index} className="space-y-2">
-            {title && <p className="font-semibold">{title}</p>}
+            {title && <p className="font-semibold text-gray-900 dark:text-white">{title}</p>}
             <ul className="space-y-1.5">
               {items.map((item, i) => (
                 <li key={i} className="flex items-start space-x-2">
                   <span className="text-sky-500 mt-1">•</span>
-                  <span>{item.replace(/^[-•]\s*/, '')}</span>
+                  <span className="text-gray-800 dark:text-gray-200">{item.replace(/^[-•]\s*/, '')}</span>
                 </li>
               ))}
             </ul>
@@ -905,20 +895,20 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
         const [title, ...details] = section.split('\n');
         return (
           <div key={index} className="space-y-2">
-            <p className="font-semibold">{title}</p>
+            <p className="font-semibold text-gray-900 dark:text-white">{title}</p>
             <div className="pl-4 space-y-1">
               {details.map((detail, i) => (
                 <p key={i} className="flex items-start space-x-2">
                   {detail.includes(':') ? (
                     <>
                       <span className="text-sky-500">•</span>
-                      <span>
+                      <span className="text-gray-800 dark:text-gray-200">
                         <span className="font-medium">{detail.split(':')[0]}:</span>
                         {detail.split(':')[1]}
                       </span>
                     </>
                   ) : (
-                    <span>{detail}</span>
+                    <span className="text-gray-800 dark:text-gray-200">{detail}</span>
                   )}
                 </p>
               ))}
@@ -928,7 +918,7 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
       }
 
       // Regular paragraph
-      return <p key={index} className="mb-2">{section}</p>;
+      return <p key={index} className="mb-2 text-gray-800 dark:text-gray-200">{section}</p>;
     });
   };
 
@@ -960,10 +950,9 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
 
   if (showWelcome) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-sky-50 to-emerald-50 flex items-center justify-center p-4">
-        <div className="max-w-lg w-full p-8 shadow-xl rounded-2xl card"
+      <div className="fixed inset-0 bg-gradient-to-br from-sky-50 to-emerald-50 dark:from-sky-950 dark:to-emerald-950 flex items-center justify-center p-4 transition-colors duration-200">
+        <div className="max-w-lg w-full p-8 shadow-xl rounded-2xl card bg-white dark:bg-gray-800 transition-colors duration-200"
           style={{ 
-            backgroundColor: '#FFFFFF',
             isolation: 'isolate',
             position: 'relative',
             zIndex: 1,
@@ -972,39 +961,27 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
             WebkitBackdropFilter: 'none !important'
           }}
         >
-          <div 
-            style={{
-              content: '""',
-              position: 'absolute',
-              inset: 0,
-              background: '#FFFFFF',
-              zIndex: -1,
-              borderRadius: '1rem'
-            }}
-          />
           <div className="text-center relative z-2">
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-teal-500">
-              Welcome to Swallow Hero AI
-            </h1>
-            <p className="text-xl text-gray-600 mt-4 mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">Welcome to Swallow Hero</h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 mt-4 mb-8 transition-colors duration-200">
               Answer 10 short questions and live better!
             </p>
             <div className="space-y-6 mb-16">
-              <div className="flex items-center space-x-4 text-gray-600">
-                <div className="w-10 h-10 bg-sky-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-sky-600 text-lg">1</span>
+              <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-300 transition-colors duration-200">
+                <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-200">
+                  <span className="text-sky-600 dark:text-sky-400 text-lg transition-colors duration-200">1</span>
                 </div>
                 <p className="text-left">Complete a quick health profile</p>
               </div>
-              <div className="flex items-center space-x-4 text-gray-600">
-                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-teal-600 text-lg">2</span>
+              <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-300 transition-colors duration-200">
+                <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-200">
+                  <span className="text-teal-600 dark:text-teal-400 text-lg transition-colors duration-200">2</span>
                 </div>
                 <p className="text-left">Get personalized supplement recommendations</p>
               </div>
-              <div className="flex items-center space-x-4 text-gray-600">
-                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-emerald-600 text-lg">3</span>
+              <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-300 transition-colors duration-200">
+                <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-200">
+                  <span className="text-emerald-600 dark:text-emerald-400 text-lg transition-colors duration-200">3</span>
                 </div>
                 <p className="text-left">Chat with AI for ongoing support</p>
               </div>
@@ -1029,10 +1006,10 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
 
   if (error) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-white">
+      <div className="h-screen w-full flex items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-200">
         <div className="text-center p-8">
-          <h3 className="text-xl font-semibold text-red-600 mb-2">Error</h3>
-          <p className="text-gray-700">{error}</p>
+          <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2 transition-colors duration-200">Error</h3>
+          <p className="text-gray-700 dark:text-gray-300 transition-colors duration-200">{error}</p>
         </div>
       </div>
     );
@@ -1040,10 +1017,10 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
 
   if (showDisclaimer) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">🚨Important Note</h2>
-          <p className="text-gray-600 text-lg mb-6">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full p-6 shadow-xl transition-colors duration-200">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 transition-colors duration-200">🚨Important Note</h2>
+          <p className="text-gray-600 dark:text-gray-300 text-lg mb-6 transition-colors duration-200">
             Our AI provides general recommendations based on available information. 
             Always consult with a healthcare professional before starting any new supplement regimen.
           </p>
@@ -1062,22 +1039,22 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
     const currentStepData = QUESTIONNAIRE_STEPS[currentStep];
     return (
       <div className="fixed inset-0 top-16 flex flex-col bg-transparent">
-        <div className="py-3 px-4 border-b border-gray-200 flex-none bg-transparent">
-          <h1 className="text-xl font-bold text-gray-900 text-center">Health Profile Questionnaire</h1>
+        <div className="py-3 px-4 border-b border-gray-200 dark:border-gray-700 flex-none bg-transparent">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white text-center transition-colors duration-200">Health Profile Questionnaire</h1>
         </div>
 
-        <div className="px-4 py-2 border-b border-gray-100 flex-none bg-transparent">
+        <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800 flex-none bg-transparent">
           <div className="flex justify-between mb-1">
             {QUESTIONNAIRE_STEPS.map((step, index) => (
               <div
                 key={step.id}
                 className={`flex-1 h-1.5 mx-0.5 rounded-full transition-colors duration-300 ${
-                  index <= currentStep ? 'bg-sky-500' : 'bg-gray-200'
+                  index <= currentStep ? 'bg-sky-500' : 'bg-gray-200 dark:bg-gray-700'
                 }`}
               />
             ))}
           </div>
-          <p className="text-center text-xs text-gray-500">
+          <p className="text-center text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">
             Step {currentStep + 1} of {QUESTIONNAIRE_STEPS.length}
           </p>
         </div>
@@ -1085,27 +1062,7 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
         <div className="flex-1 overflow-hidden bg-transparent">
           <div className="h-full overflow-y-auto px-4 py-4">
             <div className="max-w-2xl mx-auto">
-              <div className="card p-8 shadow-lg"
-                style={{ 
-                  backgroundColor: '#FFFFFF',
-                  isolation: 'isolate',
-                  position: 'relative',
-                  zIndex: 1,
-                  backgroundImage: 'none !important',
-                  backdropFilter: 'none !important',
-                  WebkitBackdropFilter: 'none !important'
-                }}
-              >
-                <div 
-                  style={{
-                    content: '""',
-                    position: 'absolute',
-                    inset: 0,
-                    background: '#FFFFFF',
-                    zIndex: -1,
-                    borderRadius: '1rem'
-                  }}
-                />
+              <div className="card p-8 shadow-lg bg-white dark:bg-gray-800 transition-colors duration-200 relative rounded-xl overflow-hidden">
                 <div className="relative z-2">
                   <QuestionnaireStep
                     step={currentStepData}
@@ -1136,54 +1093,34 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
         <div className="h-full overflow-y-auto bg-transparent">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <div className="text-center max-w-xl px-4 card p-8 shadow-lg"
-                style={{ 
-                  backgroundColor: '#FFFFFF',
-                  isolation: 'isolate',
-                  position: 'relative',
-                  zIndex: 10,
-                  backgroundImage: 'none !important',
-                  backdropFilter: 'none !important',
-                  WebkitBackdropFilter: 'none !important'
-                }}
-              >
-                <div 
-                  style={{
-                    content: '""',
-                    position: 'absolute',
-                    inset: 0,
-                    background: '#FFFFFF',
-                    zIndex: -1,
-                    borderRadius: '1rem'
-                  }}
-                />
+              <div className="text-center max-w-xl px-4 card p-8 shadow-lg bg-white dark:bg-gray-800 transition-colors duration-200">
                 <div className="relative z-2">
                   <BoldText text="**Welcome to Swallow Hero AI**" />
-                  <div className="space-y-4 text-gray-600">
+                  <div className="space-y-4 text-gray-600 dark:text-gray-300 transition-colors duration-200">
                     <p>
                       I'm here to help you with personalized supplement recommendations and answer any questions about:
                     </p>
                     <ul className="space-y-2 text-left">
                       <li className="flex items-center">
-                        <svg className="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-teal-500 dark:text-teal-400 mr-2 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Vitamin and supplement recommendations
                       </li>
                       <li className="flex items-center">
-                        <svg className="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-teal-500 dark:text-teal-400 mr-2 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Dosage and timing guidance
                       </li>
                       <li className="flex items-center">
-                        <svg className="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-teal-500 dark:text-teal-400 mr-2 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Potential interactions and safety
                       </li>
                       <li className="flex items-center">
-                        <svg className="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-teal-500 dark:text-teal-400 mr-2 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         General nutrition advice
@@ -1205,43 +1142,18 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
                       <div
                         className={`relative group rounded-2xl px-4 py-3 ${
                           message.sender === 'user'
-                            ? 'rounded-tr-none'
-                            : 'card text-gray-800 rounded-tl-none'
+                            ? 'rounded-tr-none bg-gradient-to-r from-teal-500/65 to-sky-500/65 dark:from-teal-600/75 dark:to-sky-600/75 text-white shadow-sm transition-colors duration-200'
+                            : 'card text-gray-800 dark:text-gray-200 rounded-tl-none bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-900/30 transition-colors duration-200'
                         }`}
-                        style={message.sender === 'ai' ? {
-                          backgroundColor: '#FFFFFF',
-                          isolation: 'isolate',
-                          position: 'relative',
-                          zIndex: 10,
-                          backgroundImage: 'none !important',
-                          backdropFilter: 'none !important',
-                          WebkitBackdropFilter: 'none !important',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                        } : message.sender === 'user' ? {
-                          background: 'linear-gradient(to right, rgba(20, 184, 166, 0.65), rgba(14, 164, 233, 0.65))',
-                          color: '#FFFFFF',
-                          textShadow: '0 1px 1px rgba(0, 0, 0, 0.1)',
-                          boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06)'
+                        style={message.sender === 'user' ? {
+                          textShadow: '0 1px 1px rgba(0, 0, 0, 0.1)'
                         } : {}}
                       >
-                        {message.sender === 'ai' && (
-                          <div 
-                            style={{
-                              content: '""',
-                              position: 'absolute',
-                              inset: 0,
-                              background: '#FFFFFF',
-                              zIndex: -1,
-                              borderRadius: '1rem',
-                              borderTopLeftRadius: 0
-                            }}
-                          />
-                        )}
                         <div className="relative z-2">
                           {message.text.startsWith('**Health Profile Summary**') || message.sender === 'ai' ? (
                             formatMessageContent(message.text)
                           ) : (
-                            <pre className="font-sans whitespace-pre-wrap">{message.text}</pre>
+                            <pre className="font-sans whitespace-pre-wrap text-white">{message.text}</pre>
                           )}
                         </div>
                       </div>
@@ -1250,32 +1162,14 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
                 ))}
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="bg-white card rounded-2xl rounded-tl-none px-4 py-2.5"
-                      style={{ 
-                        backgroundColor: '#FFFFFF',
-                        isolation: 'isolate',
-                        position: 'relative',
-                        zIndex: 1,
-                        backgroundImage: 'none !important',
-                        backdropFilter: 'none !important',
-                        WebkitBackdropFilter: 'none !important'
-                      }}
-                    >
-                      <div 
-                        style={{
-                          content: '""',
-                          position: 'absolute',
-                          inset: 0,
-                          background: '#FFFFFF',
-                          zIndex: -1,
-                          borderRadius: '1rem',
-                          borderTopLeftRadius: 0
-                        }}
-                      />
-                      <div className="relative z-2 flex space-x-2">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                    <div className="max-w-[85%] sm:max-w-[75%]">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 transition-colors duration-200 flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '600ms' }}></div>
+                        </div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">Typing...</span>
                       </div>
                     </div>
                   </div>
@@ -1287,43 +1181,27 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
         </div>
       </div>
 
-      <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-3xl mx-auto px-4 py-3">
-          <form onSubmit={handleSubmit} className="relative" noValidate>
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => {
-                if (e.target.value.length <= MAX_MESSAGE_LENGTH) {
-                  setInputMessage(e.target.value);
-                }
-              }}
-              placeholder="Type your message here..."
-              className="w-full px-4 py-3 pr-24 rounded-lg border border-gray-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  if (inputMessage.trim()) {
-                    handleSubmit(e);
-                  }
-                }
-              }}
-            />
-            <div className="absolute right-14 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-              {inputMessage.length}/{MAX_MESSAGE_LENGTH}
-            </div>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 hover:from-sky-600 hover:via-teal-600 hover:to-green-600 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              disabled={!inputMessage.trim()}
-            >
-              <svg className="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </form>
-        </div>
+      {/* Input area */}
+      <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-md transition-colors duration-200">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex items-center space-x-4">
+          <input
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Type your message..."
+            disabled={isTyping}
+            className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
+          />
+          <button
+            type="submit"
+            disabled={!inputMessage.trim() || isTyping}
+            className="bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 hover:from-sky-600 hover:via-teal-600 hover:to-green-600 text-white rounded-lg p-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </button>
+        </form>
       </div>
     </div>
   );

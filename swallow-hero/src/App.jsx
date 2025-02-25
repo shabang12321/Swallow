@@ -38,7 +38,7 @@ const ProtectedRoute = ({ children }) => {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen p-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 dark:border-blue-400"></div>
       </div>
     );
   }
@@ -47,9 +47,8 @@ const ProtectedRoute = ({ children }) => {
   if (!user) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="max-w-md w-full rounded-2xl shadow-lg p-8 text-center"
+        <div className="max-w-md w-full rounded-2xl shadow-lg p-8 text-center bg-white dark:bg-gray-800 transition-colors duration-200"
           style={{ 
-            backgroundColor: '#FFFFFF',
             isolation: 'isolate',
             position: 'relative',
             zIndex: 1,
@@ -63,13 +62,13 @@ const ProtectedRoute = ({ children }) => {
               content: '""',
               position: 'absolute',
               inset: 0,
-              background: '#FFFFFF',
               zIndex: -1,
               borderRadius: '1rem'
             }}
+            className="bg-white dark:bg-gray-800 transition-colors duration-200"
           />
           <h2 className="text-2xl font-bold mb-4 hero-gradient relative z-2">Authentication Required</h2>
-          <p className="text-gray-600 mb-6 relative z-2">
+          <p className="text-gray-600 dark:text-gray-300 mb-6 relative z-2 transition-colors duration-200">
             Please sign in or create an account to continue.
           </p>
           <div className="space-y-4 relative z-2">
@@ -81,8 +80,7 @@ const ProtectedRoute = ({ children }) => {
             </button>
             <button
               onClick={() => window.history.back()}
-              className="block w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              style={{ backgroundColor: '#F3F4F6' }}
+              className="block w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               Go Back
             </button>
@@ -107,7 +105,11 @@ const ProfileRequiredRoute = ({ children }) => {
 
   useEffect(() => {
     const checkProfile = async () => {
-      if (!user) return;
+      // If no user or still loading, set profileChecked and exit
+      if (!user) {
+        setProfileChecked(true);
+        return;
+      }
 
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -131,7 +133,7 @@ const ProfileRequiredRoute = ({ children }) => {
   if (loading || !profileChecked) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen p-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 dark:border-blue-400"></div>
       </div>
     );
   }
@@ -150,12 +152,12 @@ const App = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700">{error.message}</p>
+        <div className="max-w-md w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-lg p-6 transition-colors duration-200">
+          <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">Error</h2>
+          <p className="text-gray-700 dark:text-gray-300">{error.message}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
             Reload Page
           </button>
@@ -171,7 +173,7 @@ const App = () => {
   return (
     <Router>
       <ThemeProvider>
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen transition-colors duration-200">
           <ScrollToTop />
           <Navigation onAuthClick={() => setShowAuthModal(true)} />
           {showAuthModal && (
