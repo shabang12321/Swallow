@@ -18,7 +18,7 @@ const About = () => {
 
           {/* Core Values Grid */}
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <div className="card p-6 text-center hover:scale-105 transition-all duration-300">
+            <div className="card p-6 text-center transition-all duration-300 hover:shadow-xl">
               <div className="inline-block p-3 rounded-full bg-sky-100 dark:bg-sky-900/50 mb-4 transition-colors duration-200">
                 <svg className="w-8 h-8 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -31,7 +31,7 @@ const About = () => {
               </p>
             </div>
 
-            <div className="card p-6 text-center hover:scale-105 transition-all duration-300">
+            <div className="card p-6 text-center transition-all duration-300 hover:shadow-xl">
               <div className="inline-block p-3 rounded-full bg-teal-100 dark:bg-teal-900/50 mb-4 transition-colors duration-200">
                 <svg className="w-8 h-8 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -44,7 +44,7 @@ const About = () => {
               </p>
             </div>
 
-            <div className="card p-6 text-center hover:scale-105 transition-all duration-300">
+            <div className="card p-6 text-center transition-all duration-300 hover:shadow-xl">
               <div className="inline-block p-3 rounded-full bg-green-100 dark:bg-green-900/50 mb-4 transition-colors duration-200">
                 <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
@@ -59,7 +59,7 @@ const About = () => {
           </div>
 
           {/* How It Works Section */}
-          <div className="card p-8 mb-16">
+          <div className="card p-8 mb-16 transition-all duration-300 hover:shadow-xl">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center transition-colors duration-200">How Swallow Hero Works</h2>
             <div className="grid md:grid-cols-4 gap-8">
               <div className="text-center">
@@ -110,7 +110,7 @@ const About = () => {
 
           {/* Benefits Section */}
           <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <div className="card p-6">
+            <div className="card p-6 transition-all duration-300 hover:shadow-xl">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 transition-colors duration-200">Why Choose Us</h2>
               <div className="space-y-4">
                 <div className="flex items-start space-x-4">
@@ -149,7 +149,7 @@ const About = () => {
               </div>
             </div>
 
-            <div className="card p-6">
+            <div className="card p-6 transition-all duration-300 hover:shadow-xl">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 transition-colors duration-200">Our Expertise</h2>
               <div className="space-y-4">
                 <div className="flex items-start space-x-4">
@@ -190,7 +190,7 @@ const About = () => {
           </div>
 
           {/* CTA Section */}
-          <div className="card text-center p-8">
+          <div className="card text-center p-8 transition-all duration-300 hover:shadow-xl">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors duration-200">Ready to Start Your Journey?</h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto transition-colors duration-200">
               Join thousands of users who have discovered their perfect supplement routine with Swallow Hero.

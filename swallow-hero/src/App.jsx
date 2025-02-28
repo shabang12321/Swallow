@@ -18,6 +18,8 @@ import { getDoc, doc } from 'firebase/firestore';
 import { db } from './config/firebase';
 import DarkModeToggle from './components/DarkModeToggle';
 import FeedbackButton from './components/FeedbackButton';
+import ScrollProgressBar from './components/ScrollProgressBar';
+import ExitIntentPopup from './components/ExitIntentPopup';
 
 // Scroll to top component
 const ScrollToTop = () => {
@@ -178,6 +180,7 @@ const App = () => {
         <div className="flex flex-col min-h-screen transition-colors duration-200">
           <ScrollToTop />
           <Navigation onAuthClick={() => setShowAuthModal(true)} />
+          <ScrollProgressBar />
           {showAuthModal && (
             <Auth onClose={handleCloseAuth} />
           )}
@@ -201,6 +204,7 @@ const App = () => {
           <FeedbackButton />
           <ClickSpark />
           <BackgroundParticles />
+          <ExitIntentPopup />
         </div>
       </ThemeProvider>
     </Router>

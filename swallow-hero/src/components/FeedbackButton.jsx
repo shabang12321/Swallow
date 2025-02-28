@@ -110,7 +110,7 @@ const FeedbackButton = () => {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 transition-colors duration-200">
-                  Super Appreciative of all Feedback!
+                  We Appreciate Your Feedback!
                 </h2>
                 <textarea
                   id="message"
