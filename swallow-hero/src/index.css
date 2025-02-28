@@ -4,6 +4,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Add transition to html for smoother theme changes */
+html {
+  @apply transition-colors duration-500 ease-in-out;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -11,12 +16,17 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-gradient-to-br from-sky-50 to-emerald-50;
+  @apply bg-gradient-to-br from-sky-50 to-emerald-50 transition-colors duration-500 ease-in-out;
+}
+
+/* Dark mode background */
+.dark body {
+  @apply bg-gradient-to-br from-gray-900 to-gray-800;
 }
 
 /* Improve text contrast for regular content */
 p, li, span, div {
-  @apply text-gray-700;  /* Darker than text-gray-600 for better contrast */
+  @apply text-gray-700 dark:text-gray-300 transition-colors duration-300 ease-in-out;
 }
 
 /* Specific styles for text in cards, boxes, and modals */
@@ -28,38 +38,39 @@ p, li, span, div {
 [class*="bg-gray-50"] li,
 [class*="backdrop-blur"] p,
 [class*="backdrop-blur"] li {
-  @apply text-gray-800;  /* Even darker for better contrast on white/light backgrounds */
+  @apply text-gray-800 dark:text-gray-200;
 }
 
 /* Feature descriptions and similar content in cards */
 .card .text-gray-600,
 [class*="bg-white"] .text-gray-600,
 [class*="backdrop-blur"] .text-gray-600 {
-  @apply text-gray-800;
+  @apply text-gray-800 dark:text-gray-200;
 }
 
 /* Keep headings and titles with their existing styles */
 h1, h2, h3, h4, h5, h6 {
-  @apply text-gray-900;
+  @apply text-gray-900 dark:text-white transition-colors duration-200;
 }
 
 /* Ensure links remain visible but distinct */
 a:not(.btn-primary):not(.nav-link) {
-  @apply text-sky-700 hover:text-sky-800;
+  @apply text-sky-700 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+  @apply text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 transition-colors duration-200;
 }
 
 .hero-gradient {
-  @apply text-transparent;
-  background: linear-gradient(135deg, 
+  @apply text-transparent bg-clip-text;
+  background-image: var(--theme-gradient, linear-gradient(135deg, 
     rgb(18, 144, 202) 0%,    /* sky-500 */
     rgb(20, 184, 166) 50%,   /* teal-500 */
     rgb(34, 197, 94) 100%    /* green-500 */
-  );
+  ));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -90,9 +101,10 @@ code {
 
 /* Outline button style (for ghost/transparent buttons) */
 .btn-outline {
-  @apply px-6 py-3 rounded-xl text-base font-medium text-gray-700
-         bg-white border border-gray-300
-         hover:bg-gray-50 hover:border-gray-400
+  @apply px-6 py-3 rounded-xl text-base font-medium 
+         text-gray-700 dark:text-gray-300
+         bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600
+         hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500
          transition-all duration-300 transform hover:-translate-y-0.5
          shadow-sm hover:shadow-md
          inline-flex items-center justify-center gap-2;
@@ -127,37 +139,105 @@ code {
 }
 
 .card {
-  @apply bg-white/95 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 
-         border border-gray-100 overflow-hidden;
+  @apply rounded-xl shadow-md hover:shadow-xl transition-shadow 
+         border border-gray-100 dark:border-gray-700 overflow-hidden 
+         bg-white dark:bg-transparent;
+  isolation: isolate;
+  position: relative;
+  z-index: 10;
+  border-radius: 1rem !important;
+}
+
+.dark .card {
+  background: rgb(31, 41, 55) !important; /* gray-800 */
+  background-color: rgb(31, 41, 55) !important;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white !important;
+  background-color: white !important;
+  opacity: 1 !important;
+  z-index: 1;
+  border-radius: 1rem !important;
+  pointer-events: none;
+}
+
+.dark .card::before {
+  background: rgb(31, 41, 55) !important; /* gray-800 */
+  background-color: rgb(31, 41, 55) !important;
+}
+
+.card > * {
+  position: relative;
+  z-index: 20;
+}
+
+/* Add a new class for FAQ cards specifically */
+.faq-card {
+  @apply rounded-xl shadow-md hover:shadow-xl transition-shadow 
+         border border-gray-100 dark:border-gray-700 overflow-hidden
+         bg-white dark:bg-gray-800 transition-colors duration-200;
+  isolation: isolate;
+  position: relative;
+  z-index: 10;
+  border-radius: 1rem !important;
+}
+
+.dark .faq-card {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.faq-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(255, 255, 255);
+  z-index: 1;
+  border-radius: 1rem !important;
+  pointer-events: none;
+}
+
+.dark .faq-card::before {
+  background: rgb(31, 41, 55); /* gray-800 */
+}
+
+.faq-card > * {
+  position: relative;
+  z-index: 20;
 }
 
 .input-field {
-  @apply w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-sky-500 
-         focus:border-transparent transition-all duration-200 bg-white/90;
+  @apply w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 
+         focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400
+         focus:border-transparent transition-all duration-200 
+         bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-200;
 }
 
 .nav-link {
-  @apply px-3 py-2 rounded-md text-sm font-medium text-gray-700 
-         hover:text-sky-600 hover:bg-sky-50
+  @apply px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300
+         hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/30
          transition-all duration-300;
 }
 
 .nav-link.active {
-  @apply text-sky-600 bg-sky-50;
+  @apply text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30;
 }
 
 /* Add these if not already present */
 .faq-question {
-  @apply transition-colors duration-200 text-gray-800;
+  @apply transition-colors duration-200 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50;
 }
 
 .faq-answer {
-  @apply transition-all duration-200 text-gray-800;
+  @apply transition-all duration-200 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50;
 }
 
 /* Markdown Styling */
 .markdown-content {
-    @apply text-gray-800;
+    @apply text-gray-800 dark:text-gray-200;
 }
 
 /* Make only the main headers and supplement names use the gradient */
@@ -311,4 +391,94 @@ code {
 
 .auth-container button:hover {
   background-color: #0056b3;
+}
+
+/* Dark mode auth container */
+.dark .auth-container {
+  @apply bg-gray-800 shadow-gray-900/20;
+}
+
+.dark .auth-container input {
+  @apply bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400;
+}
+
+/* Transitions for smooth theme switching */
+.transition-theme {
+  @apply transition-all duration-500 ease-in-out;
+}
+
+/* Dark mode specific overrides */
+.dark [style*="background-color: rgb(255, 255, 255)"] {
+  background-color: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+.dark [style*="background: rgb(255, 255, 255)"] {
+  background: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+.dark [style*="background-color: #FFFFFF"] {
+  background-color: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+.dark [style*="background: #FFFFFF"] {
+  background: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+/* Dark mode message styles for chat */
+.dark .message.user {
+  @apply bg-gradient-to-r from-sky-600/70 to-teal-600/70 text-white;
+}
+
+.dark .message.assistant {
+  @apply bg-gray-800 border-gray-700 text-gray-200;
+}
+
+/* Dark mode toggle animation */
+@keyframes darkModeIn {
+  0% { transform: scale(0.8) rotate(-10deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes darkModeOut {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: scale(0.8) rotate(10deg); opacity: 0; }
+}
+
+.dark-mode-in {
+  animation: darkModeIn 0.5s forwards;
+}
+
+.dark-mode-out {
+  animation: darkModeOut 0.5s forwards;
+}
+
+/* Shake animation for unanswered mandatory questions */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.shake-error {
+  animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+  border-color: #ef4444 !important; /* red-500 */
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important; /* red-500 with transparency */
+  transition: all 0.3s ease;
+}
+
+.error-outline {
+  border-color: #ef4444 !important; /* red-500 */
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important; /* red-500 with transparency */
+  transition: all 0.3s ease;
+}
+
+/* Special styling for radio-group container */
+div[class*="radio-group"].error-outline {
+  border: 1px solid #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.05) !important;
+}
+
+.mandatory-field-label::after {
+  content: " *";
+  color: #ef4444; /* red-500 */
 }

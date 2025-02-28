@@ -8,10 +8,25 @@ import {
   signOut, 
   onAuthStateChanged
 } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { 
+  initializeFirestore, 
+  persistentLocalCache,
+  persistentSingleTabManager,
+  CACHE_SIZE_UNLIMITED,
+  enableIndexedDbPersistence,
+  doc,
+  getDoc
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { initializeAppCheck, ReCaptchaV3Provider } from '@firebase/app-check';
 
+// Only keep development token, remove console.log
+if (process.env.NODE_ENV === 'development') {
+  window.FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.REACT_APP_FIREBASE_APP_CHECK_DEBUG_TOKEN;
+}
+
+// Remove environment variables logging block
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -25,12 +40,40 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
+// Initialize App Check - remove success logging
+let appCheck = null;
+try {
+  if (!process.env.REACT_APP_RECAPTCHA_SITE_KEY) {
+    throw new Error('Missing reCAPTCHA site key');
+  }
+  
+  const debugOptions = process.env.NODE_ENV === 'development' ? {
+    isTokenAutoRefreshEnabled: true,
+    failIfNotRegistered: false
+  } : undefined;
+
+  appCheck = initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(process.env.REACT_APP_RECAPTCHA_SITE_KEY),
+    isTokenAutoRefreshEnabled: true,
+    debugOptions
+  });
+} catch (error) {
+  console.error('Error initializing App Check:', error);
+}
+
+// Initialize Firestore - remove debug logging
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentSingleTabManager(),
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED
+  })
+});
+
+// Initialize other services
 export const auth = getAuth(app);
-export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Initialize Analytics conditionally
+// Initialize Analytics without logging
 let analytics = null;
 isSupported().then(supported => {
   if (supported) {
@@ -41,11 +84,11 @@ isSupported().then(supported => {
 // Initialize providers
 export const googleProvider = new GoogleAuthProvider();
 
-// Enhanced auth functions with error handling
+// Clean up auth functions - remove success logging
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    return result;
   } catch (error) {
     console.error('Google sign-in error:', error);
     throw error;
@@ -55,7 +98,7 @@ export const signInWithGoogle = async () => {
 export const signUpWithEmail = async (email, password) => {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    return result.user;
+    return result;
   } catch (error) {
     console.error('Email sign-up error:', error);
     throw error;
@@ -65,7 +108,7 @@ export const signUpWithEmail = async (email, password) => {
 export const signInWithEmail = async (email, password) => {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    return result.user;
+    return result;
   } catch (error) {
     console.error('Email sign-in error:', error);
     throw error;
@@ -81,9 +124,30 @@ export const logOut = async () => {
   }
 };
 
-export const onAuthChange = (callback) => {
-  return onAuthStateChanged(auth, callback);
+// Remove auth state change logging
+auth.onAuthStateChanged(() => {});
+
+// Clean up testAppCheck function - remove success logging
+export const testAppCheck = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required for App Check test');
+    }
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    return userDoc.exists();
+  } catch (error) {
+    console.error('App Check Verification Failed:', error);
+    return false;
+  }
 };
 
-// Export analytics if needed
-export { analytics }; 
+// Only keep essential development tools
+if (process.env.NODE_ENV === 'development') {
+  window.testAppCheckWithCurrentUser = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return false;
+    return testAppCheck(currentUser.uid);
+  };
+}
+
+export { db, analytics, appCheck }; 

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { signOut } from 'firebase/auth';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Navigation = ({ onAuthClick }) => {
   const location = useLocation();
@@ -10,6 +11,8 @@ const Navigation = ({ onAuthClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [user] = useAuthState(auth);
+  const userMenuRef = useRef(null);
+  const { profileTheme, getThemeGradient } = useTheme();
 
   const isActive = (path) => location.pathname === path;
 
@@ -18,23 +21,36 @@ const Navigation = ({ onAuthClick }) => {
     setIsUserMenuOpen(false);
   };
 
+  // Handle click outside user menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);
       handleLinkClick();
-      // If on a protected route, redirect to home
       if (location.pathname === '/chat') {
         navigate('/');
       }
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Sign out failed');
     }
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-50 bg-white">
-        <div className="flex justify-between h-16 bg-white relative">
+    <nav className="bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-800 sticky top-0 z-50 transition-colors duration-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-50 bg-white dark:bg-gray-900 transition-colors duration-200">
+        <div className="flex justify-between h-16 bg-white dark:bg-gray-900 relative transition-colors duration-200">
           {/* Logo and brand */}
           <div className="flex items-center relative z-50">
             <Link to="/" className="flex items-center space-x-2" onClick={handleLinkClick}>
@@ -86,27 +102,44 @@ const Navigation = ({ onAuthClick }) => {
             </Link>
 
             {user ? (
-              <div className="relative ml-4">
+              <div className="relative ml-4" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-sky-500 via-teal-500 to-green-500 flex items-center justify-center text-white font-medium">
+                  <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${getThemeGradient(profileTheme)} flex items-center justify-center text-white font-medium`}>
                     {user.email ? user.email[0].toUpperCase() : 'U'}
                   </div>
-                  <span className="text-sm text-gray-700">{user.email}</span>
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{user.email}</span>
+                  <svg className={`w-4 h-4 text-gray-500 dark:text-gray-400 transform transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50">
+                    <Link
+                      to="/profile"
+                      onClick={handleLinkClick}
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Edit Profile
+                      </div>
+                    </Link>
                     <button
                       onClick={handleSignOut}
-                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                      className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
                     >
-                      Sign Out
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Sign Out
+                      </div>
                     </button>
                   </div>
                 )}
@@ -121,11 +154,11 @@ const Navigation = ({ onAuthClick }) => {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile menu elements */}
           <div className="flex items-center lg:hidden relative z-50">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"
             >
               <span className="sr-only">Open main menu</span>
               {!isMenuOpen ? (
@@ -142,12 +175,12 @@ const Navigation = ({ onAuthClick }) => {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu with dark mode styling */}
       {isMenuOpen && (
         <>
           {/* Overlay to handle outside clicks */}
           <div 
-            className="fixed inset-0 bg-black/20 z-30 lg:hidden" 
+            className="fixed inset-0 bg-black/20 dark:bg-black/40 z-30 lg:hidden" 
             onClick={(e) => {
               e.stopPropagation();
               setIsMenuOpen(false);
@@ -157,12 +190,14 @@ const Navigation = ({ onAuthClick }) => {
             className="absolute inset-x-0 top-full z-40 lg:hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-white shadow-lg">
+            <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800">
               <div className="px-2 pt-2 pb-3 space-y-1">
                 <Link 
                   to="/" 
                   className={`block px-3 py-2 rounded-md text-base font-medium text-center cursor-pointer ${
-                    isActive('/') ? 'text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                    isActive('/') 
+                      ? 'text-sky-600 dark:text-sky-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                   onClick={handleLinkClick}
                 >
@@ -171,7 +206,9 @@ const Navigation = ({ onAuthClick }) => {
                 <Link 
                   to="/chat" 
                   className={`block px-3 py-2 rounded-md text-base font-medium text-center cursor-pointer ${
-                    isActive('/chat') ? 'text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                    isActive('/chat') 
+                      ? 'text-sky-600 dark:text-sky-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                   onClick={handleLinkClick}
                 >
@@ -180,7 +217,9 @@ const Navigation = ({ onAuthClick }) => {
                 <Link 
                   to="/faq" 
                   className={`block px-3 py-2 rounded-md text-base font-medium text-center cursor-pointer ${
-                    isActive('/faq') ? 'text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                    isActive('/faq') 
+                      ? 'text-sky-600 dark:text-sky-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                   onClick={handleLinkClick}
                 >
@@ -189,7 +228,9 @@ const Navigation = ({ onAuthClick }) => {
                 <Link 
                   to="/plans" 
                   className={`block px-3 py-2 rounded-md text-base font-medium text-center cursor-pointer ${
-                    isActive('/plans') ? 'text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                    isActive('/plans') 
+                      ? 'text-sky-600 dark:text-sky-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                   onClick={handleLinkClick}
                 >
@@ -198,7 +239,9 @@ const Navigation = ({ onAuthClick }) => {
                 <Link 
                   to="/about" 
                   className={`block px-3 py-2 rounded-md text-base font-medium text-center cursor-pointer ${
-                    isActive('/about') ? 'text-sky-600' : 'text-gray-700 hover:bg-gray-50'
+                    isActive('/about') 
+                      ? 'text-sky-600 dark:text-sky-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                   onClick={handleLinkClick}
                 >
@@ -216,15 +259,37 @@ const Navigation = ({ onAuthClick }) => {
                     Sign In
                   </button>
                 ) : (
-                  <div className="border-t border-gray-200 mt-4 pt-4 text-center">
-                    <div className="px-4 py-2 text-sm text-gray-700">
-                      Signed in as: {user.email}
+                  <div className="mt-4 border-t dark:border-gray-700 pt-2">
+                    <div className="px-3 py-2 flex items-center">
+                      <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${getThemeGradient(profileTheme)} flex items-center justify-center text-white font-medium`}>
+                        {user.email ? user.email[0].toUpperCase() : 'U'}
+                      </div>
+                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
+                        {user.email}
+                      </span>
                     </div>
+                    <Link
+                      to="/profile"
+                      onClick={handleLinkClick}
+                      className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Edit Profile
+                      </div>
+                    </Link>
                     <button
                       onClick={handleSignOut}
-                      className="w-full mt-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                      className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-left"
                     >
-                      Sign Out
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Sign Out
+                      </div>
                     </button>
                   </div>
                 )}

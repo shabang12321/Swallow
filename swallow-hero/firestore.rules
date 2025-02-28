@@ -14,8 +14,23 @@ service cloud.firestore {
       return text is string && text.size() <= 1000;
     }
     
-    function isValidTimestamp(timestamp) {
-      return timestamp is timestamp;
+    function isValidTimestamp(ts) {
+      return ts is timestamp;
+    }
+
+    function isValidProfileData(data) {
+      return data.keys().hasAll(['email']) &&
+        (!('fullName' in data) || data.fullName is string) &&
+        (!('dateOfBirth' in data) || data.dateOfBirth is string) &&
+        (!('gender' in data) || data.gender is string) &&
+        (!('height' in data) || data.height is string) &&
+        (!('weight' in data) || data.weight is string) &&
+        (!('medicalConditions' in data) || data.medicalConditions is string) &&
+        (!('allergies' in data) || data.allergies is string) &&
+        (!('emergencyContact' in data) || data.emergencyContact is string) &&
+        (!('phoneNumber' in data) || data.phoneNumber is string) &&
+        (!('profileCompleted' in data) || data.profileCompleted is bool) &&
+        (!('profileTheme' in data) || (data.profileTheme in ['ocean', 'sunset', 'citrus']));
     }
 
     // Default deny all
@@ -26,13 +41,19 @@ service cloud.firestore {
     // User profiles
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isUserOwned(userId) && 
-        request.resource.data.keys().hasAll(['email', 'createdAt']) &&
-        request.resource.data.email is string &&
-        isValidTimestamp(request.resource.data.createdAt);
-      allow update: if isUserOwned(userId) &&
-        request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['lastLogin', 'preferences', 'profile']);
+      allow create: if isUserOwned(userId) && isValidProfileData(request.resource.data);
+      allow update: if isUserOwned(userId) && isValidProfileData(request.resource.data);
+    }
+
+    // Health profiles
+    match /healthProfiles/{userId} {
+      allow read: if isUserOwned(userId);
+      allow write: if isUserOwned(userId) &&
+        request.resource.data.keys().hasAll(['age', 'sex', 'height', 'weight', 'lastUpdated']) &&
+        request.resource.data.age is number &&
+        request.resource.data.height is number &&
+        request.resource.data.weight is number &&
+        isValidTimestamp(request.resource.data.lastUpdated);
     }
 
     // Chat messages
@@ -45,17 +66,6 @@ service cloud.firestore {
         isValidTimestamp(request.resource.data.timestamp);
       allow update, delete: if isAuthenticated() && 
         resource.data.userId == request.auth.uid;
-    }
-
-    // Health profiles
-    match /healthProfiles/{userId} {
-      allow read: if isUserOwned(userId);
-      allow write: if isUserOwned(userId) &&
-        request.resource.data.keys().hasAll(['age', 'sex', 'height', 'weight', 'lastUpdated']) &&
-        request.resource.data.age is number &&
-        request.resource.data.height is number &&
-        request.resource.data.weight is number &&
-        isValidTimestamp(request.resource.data.lastUpdated);
     }
 
     // Public data (FAQs, Plans, etc.)
@@ -71,4 +81,4 @@ service cloud.firestore {
         ((request.time - resource.data.lastAction) > duration.value(1, 's'));
     }
   }
-} 
+}

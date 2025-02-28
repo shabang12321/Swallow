@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from "react";
+import { useTheme } from '../contexts/ThemeContext';
 
 const ClickSpark = ({
-  sparkColor = "#fff",
   sparkSize = 10,
   sparkRadius = 15,
   sparkCount = 8,
@@ -9,6 +9,21 @@ const ClickSpark = ({
   easing = "ease-out",
   extraScale = 1.0,
 }) => {
+  const { profileTheme } = useTheme();
+  
+  // Define theme-based colors
+  const getThemeColors = () => {
+    switch (profileTheme) {
+      case 'sunset':
+        return ['#a855f7', '#ec4899', '#f43f5e']; // purple-500, pink-500, rose-500
+      case 'citrus':
+        return ['#f59e0b', '#eab308', '#84cc16']; // amber-500, yellow-500, lime-500
+      case 'ocean':
+      default:
+        return ['#0ea5e9', '#14b8a6', '#22c55e']; // sky-500, teal-500, green-500
+    }
+  };
+
   const canvasRef = useRef(null);
   const sparksRef = useRef([]); // Stores spark data
   const startTimeRef = useRef(null); // Tracks initial timestamp for animation
@@ -113,8 +128,10 @@ const ClickSpark = ({
         const x2 = spark.x + (distance + lineLength) * Math.cos(spark.angle);
         const y2 = spark.y + (distance + lineLength) * Math.sin(spark.angle);
 
-        // Draw the spark line
-        ctx.strokeStyle = sparkColor;
+        // Get theme colors and use them for sparks
+        const colors = getThemeColors();
+        const colorIndex = Math.floor((spark.angle / (2 * Math.PI)) * colors.length);
+        ctx.strokeStyle = colors[colorIndex % colors.length];
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -133,13 +150,13 @@ const ClickSpark = ({
       cancelAnimationFrame(animationId);
     };
   }, [
-    sparkColor,
     sparkSize,
     sparkRadius,
     sparkCount,
     duration,
     easeFunc,
     extraScale,
+    profileTheme
   ]);
 
   return (
