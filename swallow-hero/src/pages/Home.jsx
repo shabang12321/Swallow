@@ -77,7 +77,7 @@ const Home = () => {
       </div>
 
       {/* How It Works Section */}
-      <div className="py-16 bg-gradient-to-br from-sky-50 to-emerald-50 dark:from-gray-900 dark:to-gray-800 dark:bg-none transition-colors duration-300">
+      <div className="py-16 bg-transparent transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold hero-gradient mb-4">How Swallow Hero Works</h2>
@@ -168,7 +168,7 @@ const Home = () => {
       </div>
 
       {/* Subscription Plans */}
-      <div className="py-12 sm:py-20 bg-gradient-to-br from-sky-50 to-emerald-50 dark:from-gray-900 dark:to-gray-800 dark:bg-none transition-colors duration-300">
+      <div className="py-12 sm:py-20 bg-transparent transition-colors duration-300">
         <SubscriptionPlans />
       </div>
     </div>
