@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import OpenAI from 'openai';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -249,28 +249,73 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [showCustomInput, setShowCustomInput] = useState({});
+  const [showErrors, setShowErrors] = useState(false);
+  const [shakeFields, setShakeFields] = useState(false);
+
+  // Reset showErrors when step changes
+  useEffect(() => {
+    setShowErrors(false);
+    setShakeFields(false);
+  }, [step]);
+
+  const validateField = (fieldName, value) => {
+    const field = step.fields.find(f => f.name === fieldName);
+    if (!field) return null;
+
+    if (field.required && !value) {
+      return 'This field is required';
+    }
+    
+    // For multiselect, check if array is empty
+    if (field.required && field.type === 'multiselect' && 
+        Array.isArray(value) && value.length === 0) {
+      return 'This field is required';
+    }
+    
+    if (field.type === 'number' && value) {
+      const num = Number(value);
+      if (field.name === 'age' && (num < 18 || num > 120)) {
+        return 'Please enter a valid age between 18 and 120';
+      }
+      if (field.name === 'height' && num < 0) {
+        return 'Height cannot be negative';
+      }
+      if (field.name === 'weight' && num < 0) {
+        return 'Weight cannot be negative';
+      }
+    }
+    
+    return null;
+  };
 
   const validateStep = () => {
     const newErrors = {};
     step.fields.forEach(field => {
-      if (field.required && !formData[field.name]) {
-        newErrors[field.name] = 'This field is required';
-      }
-      if (field.type === 'number' && formData[field.name]) {
-        const num = Number(formData[field.name]);
-        if (field.name === 'age' && (num < 18 || num > 120)) {
-          newErrors[field.name] = 'Please enter a valid age between 18 and 120';
-        }
-        if (field.name === 'height' && num < 0) {
-          newErrors[field.name] = 'Height cannot be negative';
-        }
-        if (field.name === 'weight' && num < 0) {
-          newErrors[field.name] = 'Weight cannot be negative';
-        }
-      }
+      const error = validateField(field.name, formData[field.name]);
+      if (error) newErrors[field.name] = error;
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleFieldChange = (name, value) => {
+    // Update form data
+    onChange(name, value);
+    
+    // Mark field as touched
+    setTouched(prev => ({ ...prev, [name]: true }));
+    
+    // Validate this field and update errors immediately
+    const error = validateField(name, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+    
+    // If the field now has a valid value, remove the shake animation
+    if (!error && value) {
+      setShakeFields(false);
+    }
   };
 
   const handleNext = () => {
@@ -283,6 +328,15 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
 
     if (validateStep()) {
       onNext();
+    } else {
+      // Show errors and trigger shake animation
+      setShowErrors(true);
+      setShakeFields(true);
+      
+      // Reset shake animation after it completes
+      setTimeout(() => {
+        setShakeFields(false);
+      }, 600); // Match the duration of the shake animation
     }
   };
 
@@ -293,6 +347,18 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
   const renderField = (field) => {
     const value = formData[field.name] !== undefined ? formData[field.name] : field.defaultValue;
     const error = touched[field.name] && errors[field.name];
+    
+    // Only show error styling if there's an error or if showErrors is true and the field is required and empty
+    const isErrorField = error || (showErrors && field.required && !formData[field.name]);
+    
+    // For multiselect, check if array is empty
+    const isMultiselectError = field.type === 'multiselect' && field.required && 
+                              (!Array.isArray(formData[field.name]) || formData[field.name].length === 0);
+    
+    // Only apply shake-error class if shakeFields is true
+    const fieldErrorClass = isErrorField && shakeFields ? 'shake-error' : isErrorField ? 'error-outline' : '';
+    const multiselectErrorClass = (error || (showErrors && isMultiselectError)) && shakeFields ? 'shake-error' : 
+                                 (error || (showErrors && isMultiselectError)) ? 'error-outline' : '';
 
     switch (field.type) {
       case 'range':
@@ -304,17 +370,17 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                 min={field.min}
                 max={field.max}
                 value={Math.min(Math.max(value || field.defaultValue, field.min), field.max)}
-                onChange={(e) => onChange(field.name, e.target.value)}
+                onChange={(e) => handleFieldChange(field.name, e.target.value)}
                 onFocus={() => handleFieldFocus(field.name)}
-                className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-sky-500 dark:accent-sky-400"
+                className={`flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-sky-500 dark:accent-sky-400 ${fieldErrorClass}`}
               />
               {field.allowCustomInput && !showCustomInput[field.name] ? (
                 <button
                   onClick={() => {
                     setShowCustomInput(prev => ({ ...prev, [field.name]: true }));
-                    onChange(field.name, value);
+                    handleFieldChange(field.name, value);
                   }}
-                  className="w-20 px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded hover:border-sky-500 transition-colors text-center dark:text-white"
+                  className={`w-20 px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded hover:border-sky-500 transition-colors text-center dark:text-white ${fieldErrorClass}`}
                 >
                   {value} {field.name === 'height' ? 'cm' : 'kg'}
                 </button>
@@ -325,7 +391,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                   value={value}
                   onChange={(e) => {
                     const newValue = Math.max(0, Number(e.target.value)) || '';
-                    onChange(field.name, newValue.toString());
+                    handleFieldChange(field.name, newValue.toString());
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -339,11 +405,11 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                   }}
                   onBlur={() => {
                     if (!formData[field.name] && formData[field.name] !== '0') {
-                      onChange(field.name, field.defaultValue.toString());
+                      handleFieldChange(field.name, field.defaultValue.toString());
                     }
                     setShowCustomInput(prev => ({ ...prev, [field.name]: false }));
                   }}
-                  className="w-20 px-3 py-1 text-sm border border-gray-200 dark:border-gray-600 rounded focus:border-sky-500 focus:ring-1 focus:ring-sky-200 text-center dark:bg-gray-700 dark:text-white"
+                  className={`w-20 px-3 py-1 text-sm border border-gray-200 dark:border-gray-600 rounded focus:border-sky-500 focus:ring-1 focus:ring-sky-200 text-center dark:bg-gray-700 dark:text-white ${fieldErrorClass}`}
                   autoFocus
                 />
               ) : (
@@ -364,12 +430,12 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
           <div className="relative">
             <select
               value={value}
-              onChange={(e) => onChange(field.name, e.target.value)}
+              onChange={(e) => handleFieldChange(field.name, e.target.value)}
               onFocus={() => handleFieldFocus(field.name)}
               className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
-                ${error ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200 dark:border-gray-600'}
-                ${value ? 'border-green-200 dark:border-green-700' : ''}
-                appearance-none bg-white dark:bg-gray-700 dark:text-white`}
+                ${isErrorField ? 'border-red-500 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200 dark:border-gray-600'}
+                ${value && !isErrorField ? 'border-green-200 dark:border-green-700' : ''}
+                appearance-none bg-white dark:bg-gray-700 dark:text-white ${fieldErrorClass}`}
             >
               <option value="">Select {field.label.toLowerCase()}...</option>
               {field.options.map(option => (
@@ -386,7 +452,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
 
       case 'multiselect':
         return (
-          <div className="space-y-1 p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
+          <div className={`space-y-1 p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 ${multiselectErrorClass}`}>
             {field.options.map(option => (
               <label key={option} className="flex items-center space-x-2 p-1.5 hover:bg-gray-50 dark:hover:bg-gray-600 rounded transition-colors duration-150">
                 <input
@@ -397,8 +463,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                     const value = e.target.checked
                       ? [...current, option]
                       : current.filter(item => item !== option);
-                    onChange(field.name, value);
-                    handleFieldFocus(field.name);
+                    handleFieldChange(field.name, value);
                   }}
                   className="w-4 h-4 rounded text-sky-500 focus:ring-1 focus:ring-sky-200 transition-all duration-200"
                 />
@@ -410,7 +475,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
 
       case 'radio-group':
         return (
-          <div className="flex justify-between items-center space-x-4">
+          <div className={`flex justify-between items-center space-x-4 p-2 rounded-md ${isErrorField ? 'error-outline' : ''} ${fieldErrorClass}`}>
             {field.options.map(option => (
               <label
                 key={option}
@@ -424,7 +489,8 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
                   name={field.name}
                   value={option}
                   checked={value === option}
-                  onChange={(e) => onChange(field.name, e.target.value)}
+                  onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                  onFocus={() => handleFieldFocus(field.name)}
                   className="hidden"
                 />
                 {option}
@@ -438,13 +504,13 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
           <input
             type={field.type}
             value={value}
-            onChange={(e) => onChange(field.name, e.target.value)}
+            onChange={(e) => handleFieldChange(field.name, e.target.value)}
             onFocus={() => handleFieldFocus(field.name)}
             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
             className={`w-full p-2 border rounded-md focus:ring-1 transition-all duration-200
-              ${error && touched[field.name] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 dark:border-gray-600 focus:ring-sky-200'}
-              ${value && !error ? 'border-green-200 dark:border-green-700' : ''}
-              dark:bg-gray-700 dark:text-white`}
+              ${isErrorField ? 'border-red-500 focus:ring-red-200' : 'border-gray-200 dark:border-gray-600 focus:ring-sky-200'}
+              ${value && !isErrorField ? 'border-green-200 dark:border-green-700' : ''}
+              dark:bg-gray-700 dark:text-white ${fieldErrorClass}`}
           />
         );
     }
@@ -477,6 +543,19 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
               {errors[field.name] && touched[field.name] && (
                 <p className="text-xs text-red-500 dark:text-red-400">
                   {errors[field.name]}
+                </p>
+              )}
+              
+              {!errors[field.name] && showErrors && field.required && !formData[field.name] && (
+                <p className="text-xs text-red-500 dark:text-red-400">
+                  This field is required
+                </p>
+              )}
+              
+              {!errors[field.name] && showErrors && field.required && field.type === 'multiselect' && 
+               Array.isArray(formData[field.name]) && formData[field.name].length === 0 && (
+                <p className="text-xs text-red-500 dark:text-red-400">
+                  This field is required
                 </p>
               )}
               

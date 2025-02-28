@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QUESTIONNAIRE_STEPS, VALIDATION_RULES, ERROR_MESSAGES } from '../config/constants';
 
-const QuestionnaireField = ({ field, value, onChange, error, onFocus }) => {
+const QuestionnaireField = ({ field, value, onChange, error, onFocus, showError }) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
+  
+  // Determine if this field should show error styling
+  const isErrorField = error || (showError && field.required && !value);
+  const fieldErrorClass = isErrorField && showError ? 'shake-error' : isErrorField ? 'error-outline' : '';
 
   switch (field.type) {
     case 'select':
       return (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">{field.label}</label>
+          <label className={`block text-sm font-medium text-gray-700 ${field.required ? 'mandatory-field-label' : ''}`}>
+            {field.label}
+          </label>
           <select
             value={value || ''}
             onChange={(e) => onChange(field.name, e.target.value)}
             onFocus={() => onFocus(field.name)}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
-              error ? 'border-red-300' : ''
-            }`}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${fieldErrorClass}`}
           >
             <option value="">Select {field.label}</option>
             {field.options.map((option) => (
@@ -25,14 +29,19 @@ const QuestionnaireField = ({ field, value, onChange, error, onFocus }) => {
             ))}
           </select>
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {!error && showError && field.required && !value && (
+            <p className="text-sm text-red-600">{ERROR_MESSAGES.required(field.label)}</p>
+          )}
         </div>
       );
 
     case 'radio-group':
       return (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">{field.label}</label>
-          <div className="mt-2 space-x-4">
+          <label className={`block text-sm font-medium text-gray-700 ${field.required ? 'mandatory-field-label' : ''}`}>
+            {field.label}
+          </label>
+          <div className={`mt-2 space-x-4 p-2 rounded-md ${isErrorField ? 'error-outline' : ''} ${fieldErrorClass}`}>
             {field.options.map((option) => (
               <label key={option} className="inline-flex items-center">
                 <input
@@ -48,13 +57,18 @@ const QuestionnaireField = ({ field, value, onChange, error, onFocus }) => {
             ))}
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {!error && showError && field.required && !value && (
+            <p className="text-sm text-red-600">{ERROR_MESSAGES.required(field.label)}</p>
+          )}
         </div>
       );
 
     case 'range':
       return (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">{field.label}</label>
+          <label className={`block text-sm font-medium text-gray-700 ${field.required ? 'mandatory-field-label' : ''}`}>
+            {field.label}
+          </label>
           <div className="flex items-center space-x-4">
             {showCustomInput ? (
               <input
@@ -64,9 +78,7 @@ const QuestionnaireField = ({ field, value, onChange, error, onFocus }) => {
                 max={field.max}
                 onChange={(e) => onChange(field.name, e.target.value)}
                 onFocus={() => onFocus(field.name)}
-                className={`mt-1 block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
-                  error ? 'border-red-300' : ''
-                }`}
+                className={`mt-1 block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${fieldErrorClass}`}
               />
             ) : (
               <input
@@ -76,7 +88,7 @@ const QuestionnaireField = ({ field, value, onChange, error, onFocus }) => {
                 max={field.max}
                 onChange={(e) => onChange(field.name, e.target.value)}
                 onFocus={() => onFocus(field.name)}
-                className="w-full"
+                className={`w-full ${fieldErrorClass}`}
               />
             )}
             <span className="text-sm text-gray-600">
@@ -93,6 +105,68 @@ const QuestionnaireField = ({ field, value, onChange, error, onFocus }) => {
             )}
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {!error && showError && field.required && !value && (
+            <p className="text-sm text-red-600">{ERROR_MESSAGES.required(field.label)}</p>
+          )}
+        </div>
+      );
+
+    case 'text':
+      return (
+        <div className="space-y-2">
+          <label className={`block text-sm font-medium text-gray-700 ${field.required ? 'mandatory-field-label' : ''}`}>
+            {field.label}
+          </label>
+          <input
+            type="text"
+            value={value || ''}
+            onChange={(e) => onChange(field.name, e.target.value)}
+            onFocus={() => onFocus(field.name)}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${fieldErrorClass}`}
+          />
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {!error && showError && field.required && !value && (
+            <p className="text-sm text-red-600">{ERROR_MESSAGES.required(field.label)}</p>
+          )}
+        </div>
+      );
+
+    case 'multiselect':
+      return (
+        <div className="space-y-2">
+          <label className={`block text-sm font-medium text-gray-700 ${field.required ? 'mandatory-field-label' : ''}`}>
+            {field.label}
+          </label>
+          <div className={`mt-2 p-2 border rounded-md ${fieldErrorClass}`}>
+            {field.options.map((option) => (
+              <label key={option} className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  value={option}
+                  checked={Array.isArray(value) && value.includes(option)}
+                  onChange={(e) => {
+                    const newValue = Array.isArray(value) ? [...value] : [];
+                    if (e.target.checked) {
+                      newValue.push(option);
+                    } else {
+                      const index = newValue.indexOf(option);
+                      if (index !== -1) {
+                        newValue.splice(index, 1);
+                      }
+                    }
+                    onChange(field.name, newValue);
+                  }}
+                  onFocus={() => onFocus(field.name)}
+                  className="form-checkbox h-4 w-4 text-blue-600"
+                />
+                <span className="ml-2">{option}</span>
+              </label>
+            ))}
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {!error && showError && field.required && (!value || value.length === 0) && (
+            <p className="text-sm text-red-600">{ERROR_MESSAGES.required(field.label)}</p>
+          )}
         </div>
       );
 
@@ -104,10 +178,25 @@ const QuestionnaireField = ({ field, value, onChange, error, onFocus }) => {
 const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastStep }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [showErrors, setShowErrors] = useState(false);
+  const [shakeFields, setShakeFields] = useState(false);
+
+  // Reset showErrors when step changes
+  useEffect(() => {
+    setShowErrors(false);
+    setShakeFields(false);
+  }, [step]);
 
   const validateField = (field, value) => {
-    if (field.required && !value) {
-      return ERROR_MESSAGES.required(field.label);
+    if (field.required) {
+      if (!value) {
+        return ERROR_MESSAGES.required(field.label);
+      }
+      
+      // For multiselect, check if array is empty
+      if (field.type === 'multiselect' && Array.isArray(value) && value.length === 0) {
+        return ERROR_MESSAGES.required(field.label);
+      }
     }
 
     const rules = VALIDATION_RULES[field.name];
@@ -148,6 +237,15 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
 
     if (validateStep()) {
       onNext();
+    } else {
+      // Show errors and trigger shake animation
+      setShowErrors(true);
+      setShakeFields(true);
+      
+      // Reset shake animation after it completes
+      setTimeout(() => {
+        setShakeFields(false);
+      }, 600); // Match the duration of the shake animation
     }
   };
 
@@ -167,6 +265,7 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
             onChange={onChange}
             error={touched[field.name] ? errors[field.name] : null}
             onFocus={handleFieldFocus}
+            showError={showErrors && shakeFields}
           />
         ))}
       </div>
@@ -193,9 +292,23 @@ const QuestionnaireStep = ({ step, formData, onChange, onNext, onBack, isLastSte
 const Questionnaire = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  const [shakeFields, setShakeFields] = useState(false);
 
   const handleFieldChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Validate field immediately and update errors
+    const error = validateField({ name, required: QUESTIONNAIRE_STEPS[currentStep].fields.find(f => f.name === name)?.required }, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+    
+    // If the field now has a valid value, remove the shake animation
+    if (!error && value) {
+      setShakeFields(false);
+    }
   };
 
   const handleNext = () => {
