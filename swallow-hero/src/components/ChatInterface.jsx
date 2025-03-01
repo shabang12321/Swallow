@@ -3,23 +3,56 @@ import OpenAI from 'openai';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { useTheme } from '../contexts/ThemeContext';
+import { createChatSession, updateChatSession } from '../services/firebase/chatHistory';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../config/firebase';
+
+// Define initial welcome message
+const initialMessage = "Hello! I'm Swallow Hero AI. How can I help you with your supplement needs today?";
 
 // Message formatting components
 const BoldText = ({ text }) => {
-  const { profileTheme, getThemeGradient } = useTheme();
+  const { profileTheme } = useTheme();
+  
+  // Get gradient colors based on theme
+  let gradientStart, gradientEnd;
+      
+  if (profileTheme === 'ocean') {
+    gradientStart = '#0ea5e9'; // sky-500
+    gradientEnd = '#10b981';   // teal-500
+  } else if (profileTheme === 'sunset') {
+    gradientStart = '#9333ea'; // purple-600
+    gradientEnd = '#e11d48';   // rose-600
+  } else { // citrus
+    gradientStart = '#f97316'; // orange-500
+    gradientEnd = '#84cc16';   // lime-500
+  }
+  
+  // Enhanced processing for specific headings - use exact string matching
+  if (text === 'Analyzing Your Profile' || 
+      text === 'Welcome to Swallow Hero AI' || 
+      text.includes('Analyzing Your Profile') ||
+      text.includes('Welcome to Swallow Hero')) {
   return (
-    <div className={`inline-block font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r ${getThemeGradient(profileTheme)}`} 
+      <div 
+        className="mt-2 mb-2 text-transparent bg-clip-text"
       style={{ 
+          backgroundImage: `linear-gradient(to right, ${gradientStart}, ${gradientEnd})`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
-        fontSize: '1.125rem',
+          color: 'transparent',
+          fontSize: '1.25rem',
         lineHeight: '1.75rem',
         fontWeight: 700
-      }}>
+        }}
+      >
       {text.replace(/^\*\*|\*\*$/g, '')}
     </div>
   );
+  }
+  
+  return <span className="font-bold">{text}</span>;
 };
 
 const BulletList = ({ title, items }) => (
@@ -59,30 +92,238 @@ const SupplementInfo = ({ title, details }) => (
   </div>
 );
 
-const formatMessageContent = (content) => {
-  const sections = content.split('\n\n').filter(Boolean);
+// Standardize a function to create theme gradient styles for headings
+const getThemeGradientStyle = (profileTheme) => {
+  // Get gradient colors based on theme
+  let gradientStart, gradientEnd;
+  let themeClasses = '';
+  
+  if (profileTheme === 'ocean') {
+    gradientStart = '#0ea5e9'; // sky-500
+    gradientEnd = '#10b981';   // teal-500
+    themeClasses = 'from-sky-500 via-teal-500 to-green-500';
+  } else if (profileTheme === 'sunset') {
+    gradientStart = '#9333ea'; // purple-600
+    gradientEnd = '#e11d48';   // rose-600
+    themeClasses = 'from-purple-600 via-pink-600 to-rose-600';
+  } else { // citrus
+    gradientStart = '#f97316'; // orange-500
+    gradientEnd = '#84cc16';   // lime-500
+    themeClasses = 'from-orange-500 via-yellow-400 to-lime-500';
+  }
+  
+  return {
+    className: `text-transparent bg-clip-text bg-gradient-to-r ${themeClasses}`,
+    style: {
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+      color: 'transparent'
+    }
+  };
+};
+
+// Function to style vitamin names with double asterisks
+const styleVitaminNames = (text, gradientStyle) => {
+  if (!text || !text.includes('**')) return text;
+  
+  // Split by double asterisks and process
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  
+  return parts.map((part, i) => {
+    // Check if this part is surrounded by double asterisks
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const vitaminName = part.replace(/^\*\*|\*\*$/g, '');
+      return (
+        <span 
+          key={i} 
+          className={gradientStyle.className}
+          style={{
+            ...gradientStyle.style,
+            fontWeight: 'bold',
+            display: 'inline',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            color: 'transparent'
+          }}
+        >
+          {vitaminName}
+        </span>
+      );
+    }
+    return part;
+  });
+};
+
+const formatMessageContent = (content, profileTheme, themeGradientFunc) => {
+  // Only format if content exists and is a string
+  if (!content || typeof content !== 'string') return content;
+  
+  // Get theme gradient style - handle both function types
+  let gradientStyle;
+  if (themeGradientFunc) {
+    // If we're passed the ThemeContext's getThemeGradient
+    const gradientClass = themeGradientFunc(profileTheme);
+    gradientStyle = {
+      className: `text-transparent bg-clip-text bg-gradient-to-r ${gradientClass}`,
+      style: {
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        color: 'transparent'
+      }
+    };
+  } else {
+    // Use the local getThemeGradientStyle function
+    gradientStyle = getThemeGradientStyle(profileTheme);
+  }
+  
+  // Split content by double newlines to identify sections
+  const sections = content.split(/\n\n+/);
   
   return sections.map((section, index) => {
-    // Main headers and supplement names (keep theme gradient)
-    if (section.startsWith('**') && section.endsWith('**')) {
+    // Skip empty sections
+    if (!section.trim()) return null;
+    
+    // Use the styleVitaminNames function with gradientStyle parameter
+    const processText = (text) => styleVitaminNames(text, gradientStyle);
+    
+    // Check for Personalized Supplement Analysis header
+    if (section.startsWith('**') && section.endsWith('**') && section.includes('Personalized Supplement Analysis')) {
       return (
-        <div key={index} className="mt-6 first:mt-0">
-          <BoldText text={section} />
+        <div key={index} className="mt-4 mb-2">
+          <h3 
+            className={`text-xl font-bold ${gradientStyle.className}`}
+            style={{
+              ...gradientStyle.style,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              color: 'transparent'
+            }}
+          >
+            Personalized Supplement Analysis
+          </h3>
         </div>
       );
     }
     
+    // Supplement headers - any text with asterisks (e.g., "**Vitamin B12**")
+    if (section.startsWith('**') && section.endsWith('**')) {
+      const supplementName = section.replace(/^\*\*|\*\*$/g, '');
+      
+      // Special cases for welcome and analyzing messages
+      if (supplementName.includes('Welcome to Swallow Hero') || 
+          supplementName === 'Welcome to Swallow Hero AI' ||
+          supplementName.includes('Analyzing Your Profile') ||
+          supplementName === 'Analyzing Your Profile' ||
+          supplementName.includes('Personalized Supplement Analysis')) {
+        
+      return (
+          <div key={index} className="mt-4">
+            <h3 
+              className={`text-xl font-bold ${gradientStyle.className}`}
+              style={{
+                ...gradientStyle.style,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: 'transparent'
+              }}
+            >
+              {supplementName}
+            </h3>
+        </div>
+        );
+      }
+      
+      // For any text with asterisks (including supplement names), apply theme gradient styling
+      return (
+        <div key={index} className="mt-4">
+          <h3 
+            className={`text-lg font-bold ${gradientStyle.className}`}
+            style={{
+              ...gradientStyle.style,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              color: 'transparent'
+            }}
+          >
+            {supplementName}
+          </h3>
+        </div>
+      );
+    }
+    
+    // Purpose and Dosage bullet points
+    if (section.includes('**Purpose:**') || section.includes('**Dosage:**')) {
+      const lines = section.split('\n');
+      
+      // Get theme gradient for bullet points 
+      let bulletColor;
+      if (profileTheme === 'ocean') {
+        bulletColor = 'text-sky-500';
+      } else if (profileTheme === 'sunset') {
+        bulletColor = 'text-purple-600';
+      } else { // citrus
+        bulletColor = 'text-orange-500';
+      }
+      
+      return (
+        <ul key={index} className="mt-1 mb-3 space-y-1">
+          {lines.map((line, i) => {
+            if (line.includes('**Purpose:**')) {
+              // Clean up by removing any dashes or extra spaces after the colon
+              const purposeContent = line.replace('**Purpose:**', '').replace(/^\s*-?\s*/, ' ').trim();
+              return (
+                <li key={`purpose-${i}`} className="flex items-start">
+                  <span className={`${bulletColor} mr-2 mt-1`}>•</span>
+                  <span>
+                    <span className="font-bold text-gray-800 dark:text-gray-200">Purpose: </span>
+                    {processText(purposeContent)}
+                  </span>
+                </li>
+              );
+            }
+            if (line.includes('**Dosage:**')) {
+              // Clean up by removing any dashes or extra spaces after the colon
+              const dosageContent = line.replace('**Dosage:**', '').replace(/^\s*-?\s*/, ' ').trim();
+              return (
+                <li key={`dosage-${i}`} className="flex items-start">
+                  <span className={`${bulletColor} mr-2 mt-1`}>•</span>
+                  <span>
+                    <span className="font-bold text-gray-800 dark:text-gray-200">Dosage: </span>
+                    {processText(dosageContent)}
+                  </span>
+                </li>
+              );
+            }
+            // For other lines (vitamin names), don't show bullet points
+            return (
+              <div key={i} className="pl-2 py-0.5">
+                {processText(line.replace(/^[-•]\s*/, ''))}
+              </div>
+            );
+          })}
+        </ul>
+      );
+    }
+    
     // Important Notes section
-    if (section.startsWith('**Important Notes:**')) {
+    if (section.toLowerCase().includes('**important notes:**')) {
       const [header, ...notes] = section.split('\n');
       return (
-        <div key={index} className="mt-6">
-          <BoldText text={header} />
+        <div key={index} className="mt-6 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-100 dark:border-yellow-800/50">
+          <h3 className="text-lg font-bold text-yellow-700 dark:text-yellow-400 mb-2">
+            Important Notes:
+          </h3>
           <ul className="space-y-1.5">
             {notes.map((note, i) => (
               <li key={i} className="flex items-start space-x-2">
-                <span className="text-sky-500 mt-1">•</span>
-                <span>{note.replace(/^[-•]\s*/, '')}</span>
+                <span className="text-yellow-500 mt-1">•</span>
+                <span className="text-gray-800 dark:text-gray-200">{processText(note.replace(/^[-•]\s*/, ''))}</span>
               </li>
             ))}
           </ul>
@@ -90,36 +331,60 @@ const formatMessageContent = (content) => {
       );
     }
     
-    // Supplement info with bold text handling
-    if (section.includes('**')) {
-      const lines = section.split('\n');
+    // "Analyzing Your Profile" message - match user's theme
+    if (section.includes('Analyzing Your Profile')) {
+      // Extract the header text from the bold markers
+      const headerText = section.match(/\*\*(.*?)\*\*/)?.[1] || 'Analyzing Your Profile';
+      const contentText = section.replace(/\*\*.*?\*\*/, '').trim();
+      
+      // Get background based on theme
+      const bgGradient = profileTheme === 'ocean' ? 
+        "from-sky-50/80 to-teal-50/50 dark:from-sky-900/20 dark:to-teal-800/10 border-sky-100 dark:border-sky-800/30" :
+        profileTheme === 'sunset' ? 
+        "from-pink-50/80 to-purple-50/50 dark:from-pink-900/20 dark:to-purple-800/10 border-pink-100 dark:border-pink-800/30" :
+        "from-yellow-50/80 to-lime-50/50 dark:from-yellow-900/20 dark:to-lime-800/10 border-yellow-100 dark:border-yellow-800/30";
+      
       return (
-        <div key={index} className="mt-4">
-          {lines.map((line, i) => {
-            if (line.startsWith('**') && line.endsWith('**')) {
-              return <BoldText key={i} text={line} />;
-            }
-            if (line.includes('**')) {
-              // Handle Purpose and Dosage as regular bold text
-              const parts = line.split(/\*\*(.*?)\*\*/);
-              return (
-                <p key={i} className="flex items-start space-x-2">
-                  <span className="text-sky-500">•</span>
-                  <span>
-                    <span className="font-bold">{parts[1]}</span>
-                    {parts[2]}
-                  </span>
-                </p>
-              );
-            }
-            return <p key={i}>{line}</p>;
-          })}
+        <div key={index} className={`my-4 p-4 bg-gradient-to-r ${bgGradient} rounded-lg border`}>
+          <h3 
+            className={`text-xl font-bold mb-2 ${gradientStyle.className}`}
+            style={gradientStyle.style}
+          >
+            {headerText}
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300">{processText(contentText)}</p>
+        </div>
+      );
+    }
+    
+    // Welcome message - match user's theme
+    if (section.includes('Welcome to Swallow Hero')) {
+      // Extract the header text from the bold markers
+      const headerText = section.match(/\*\*(.*?)\*\*/)?.[1] || 'Welcome to Swallow Hero AI';
+      const contentText = section.replace(/\*\*.*?\*\*/, '').trim();
+      
+      // Get background based on theme
+      const bgGradient = profileTheme === 'ocean' ? 
+        "from-sky-50/80 to-teal-50/50 dark:from-sky-900/20 dark:to-teal-800/10 border-sky-100 dark:border-sky-800/30" :
+        profileTheme === 'sunset' ? 
+        "from-pink-50/80 to-purple-50/50 dark:from-pink-900/20 dark:to-purple-800/10 border-pink-100 dark:border-pink-800/30" :
+        "from-yellow-50/80 to-lime-50/50 dark:from-yellow-900/20 dark:to-lime-800/10 border-yellow-100 dark:border-yellow-800/30";
+      
+      return (
+        <div key={index} className={`my-4 p-4 bg-gradient-to-r ${bgGradient} rounded-lg border`}>
+          <h3 
+            className={`text-xl font-bold mb-2 ${gradientStyle.className}`}
+            style={gradientStyle.style}
+          >
+            {headerText}
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300">{processText(contentText)}</p>
         </div>
       );
     }
     
     // Regular paragraph
-    return <p key={index} className="mb-4">{section}</p>;
+    return <p key={index} className="mb-4 text-gray-800 dark:text-gray-200">{processText(section)}</p>;
   });
 };
 
@@ -617,7 +882,7 @@ const WELCOME_MESSAGES = {
     sender: 'ai'
   },
   analyzing: {
-    text: "**Analyzing Your Profile**\n\nI'm analysing your health profile to create personalised supplement recommendations for you. One moment please...",
+    text: "**Analyzing Your Profile**\n\nI'm analyzing your health profile to create personalised supplement recommendations for you. One moment please...",
     sender: 'ai'
   }
 };
@@ -626,44 +891,312 @@ const SYSTEM_MESSAGE = {
   role: "system",
   content: `You are Swallow Hero, a professional vitamin and supplement advisor. You MUST format EVERY response, including your first response, using this exact structure:
 
-FIRST RESPONSE FORMAT:
-When first analyzing a health profile, respond with:
+RESPONSE FORMAT:
+When analyzing a health profile, respond with:
 
 **Personalized Supplement Analysis**
 
 **[Supplement Name]**
-- **Purpose:** [Personalised, Brief and Clear purpose]
-- **Dosage:** [Personalised Clear dosage]
+- **Purpose:** [Brief, clear explanation of the benefit]
+- **Dosage:** [Clear dosage recommendation]
 
-[Repeat for each supplement]
+[Repeat for each recommended supplement]
 
 **Important Notes:**
 - [Safety disclaimers]
 - [Additional personalised notes]
 
-SUBSEQUENT RESPONSES:
-For all other responses, use the same structure.
-
 RULES:
-- EVERY response must use bold headers
-- EVERY supplement name must be bold
-- EVERY "Purpose:" and "Dosage:" must be bold
-- Never deviate from this format`
+- All supplement names MUST be in bold with proper capitalization
+- Each "Purpose:" and "Dosage:" label must be bold
+- Section titles must be bold with proper capitalization
+- Keep supplement recommendations to 3-5 key supplements most relevant to the user
+- Recommendations must be evidence-based and personalized to the user's profile
+- Always include important notes about consulting healthcare professionals`
 };
 
-const ChatInterface = () => {
-  const [messages, setMessages] = useState([]);
+// Add a new component for the horizontal health profile display
+const HorizontalHealthProfile = ({ profileData }) => {
+  const { profileTheme, getThemeGradient } = useTheme();
+  
+  if (!profileData) return null;
+  
+  // Extract the first message that contains the health profile
+  const profileMessage = profileData.find(msg => 
+    msg.role === 'assistant' && 
+    msg.content.includes('BASIC INFORMATION')
+  );
+  
+  if (!profileMessage) return null;
+
+  // Get theme colors based on user's selected theme
+  const themeColors = {
+    basic: {
+      bg: profileTheme === 'ocean' ? 'from-sky-100/80 to-sky-200/50 dark:from-sky-800/30 dark:to-sky-700/20' :
+           profileTheme === 'sunset' ? 'from-orange-100/80 to-orange-200/50 dark:from-orange-800/30 dark:to-orange-700/20' :
+           'from-yellow-100/80 to-yellow-200/50 dark:from-yellow-800/30 dark:to-yellow-700/20',
+      border: profileTheme === 'ocean' ? 'border-sky-200/50 dark:border-sky-700/30' :
+              profileTheme === 'sunset' ? 'border-orange-200/50 dark:border-orange-700/30' :
+              'border-yellow-200/50 dark:border-yellow-700/30',
+      text: profileTheme === 'ocean' ? 'text-sky-800 dark:text-sky-300' :
+            profileTheme === 'sunset' ? 'text-orange-800 dark:text-orange-300' :
+            'text-yellow-800 dark:text-yellow-300',
+      bullet: profileTheme === 'ocean' ? 'text-sky-500 dark:text-sky-400' :
+              profileTheme === 'sunset' ? 'text-orange-500 dark:text-orange-400' :
+              'text-yellow-500 dark:text-yellow-400'
+    },
+    lifestyle: {
+      bg: profileTheme === 'ocean' ? 'from-teal-100/80 to-teal-200/50 dark:from-teal-800/30 dark:to-teal-700/20' :
+          profileTheme === 'sunset' ? 'from-red-100/80 to-red-200/50 dark:from-red-800/30 dark:to-red-700/20' :
+          'from-lime-100/80 to-lime-200/50 dark:from-lime-800/30 dark:to-lime-700/20',
+      border: profileTheme === 'ocean' ? 'border-teal-200/50 dark:border-teal-700/30' :
+              profileTheme === 'sunset' ? 'border-red-200/50 dark:border-red-700/30' :
+              'border-lime-200/50 dark:border-lime-700/30',
+      text: profileTheme === 'ocean' ? 'text-teal-800 dark:text-teal-300' :
+            profileTheme === 'sunset' ? 'text-red-800 dark:text-red-300' :
+            'text-lime-800 dark:text-lime-300',
+      bullet: profileTheme === 'ocean' ? 'text-teal-500 dark:text-teal-400' :
+              profileTheme === 'sunset' ? 'text-red-500 dark:text-red-400' :
+              'text-lime-500 dark:text-lime-400'
+    },
+    health: {
+      bg: profileTheme === 'ocean' ? 'from-blue-100/80 to-blue-200/50 dark:from-blue-800/30 dark:to-blue-700/20' :
+          profileTheme === 'sunset' ? 'from-pink-100/80 to-pink-200/50 dark:from-pink-800/30 dark:to-pink-700/20' :
+          'from-green-100/80 to-green-200/50 dark:from-green-800/30 dark:to-green-700/20',
+      border: profileTheme === 'ocean' ? 'border-blue-200/50 dark:border-blue-700/30' :
+              profileTheme === 'sunset' ? 'border-pink-200/50 dark:border-pink-700/30' :
+              'border-green-200/50 dark:border-green-700/30',
+      text: profileTheme === 'ocean' ? 'text-blue-800 dark:text-blue-300' :
+            profileTheme === 'sunset' ? 'text-pink-800 dark:text-pink-300' :
+            'text-green-800 dark:text-green-300',
+      bullet: profileTheme === 'ocean' ? 'text-blue-500 dark:text-blue-400' :
+              profileTheme === 'sunset' ? 'text-pink-500 dark:text-pink-400' :
+              'text-green-500 dark:text-green-400'
+    },
+    supplements: {
+      bg: profileTheme === 'ocean' ? 'from-indigo-100/80 to-indigo-200/50 dark:from-indigo-800/30 dark:to-indigo-700/20' :
+          profileTheme === 'sunset' ? 'from-purple-100/80 to-purple-200/50 dark:from-purple-800/30 dark:to-purple-700/20' :
+          'from-emerald-100/80 to-emerald-200/50 dark:from-emerald-800/30 dark:to-emerald-700/20',
+      border: profileTheme === 'ocean' ? 'border-indigo-200/50 dark:border-indigo-700/30' :
+              profileTheme === 'sunset' ? 'border-purple-200/50 dark:border-purple-700/30' :
+              'border-emerald-200/50 dark:border-emerald-700/30',
+      text: profileTheme === 'ocean' ? 'text-indigo-800 dark:text-indigo-300' :
+            profileTheme === 'sunset' ? 'text-purple-800 dark:text-purple-300' :
+            'text-emerald-800 dark:text-emerald-300',
+      bullet: profileTheme === 'ocean' ? 'text-indigo-500 dark:text-indigo-400' :
+              profileTheme === 'sunset' ? 'text-purple-500 dark:text-purple-400' :
+              'text-emerald-500 dark:text-emerald-400'
+    }
+  };
+
+  return (
+    <div className="w-full bg-gradient-to-r from-sky-50 to-teal-50 dark:from-gray-900 dark:to-gray-800 text-gray-800 dark:text-white shadow-sm mb-4 rounded-md overflow-hidden">
+      <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+        <h3 className="text-center font-bold text-sm sm:text-base tracking-wider text-gray-900 dark:text-white">YOUR HEALTH PROFILE SUMMARY</h3>
+      </div>
+      
+      <div className="p-3 overflow-x-auto">
+        <div className="flex flex-wrap gap-4 justify-center">
+          {/* Basic Information */}
+          <div className={`flex-1 min-w-[220px] max-w-[280px] bg-gradient-to-br ${themeColors.basic.bg} rounded-lg p-3 shadow-sm border ${themeColors.basic.border}`}>
+            <h4 className={`text-sm font-semibold mb-2 flex items-center ${themeColors.basic.text}`}>
+              <span className="text-lg mr-2">🧑‍💼</span> 
+              <span>BASIC INFORMATION</span>
+            </h4>
+            <div className="space-y-2 text-sm">
+              {profileMessage.content.match(/• Age: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.basic.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Age:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Age: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+              {profileMessage.content.match(/• Sex: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.basic.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Sex:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Sex: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+              {profileMessage.content.match(/• Height: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.basic.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Height:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Height: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+              {profileMessage.content.match(/• Weight: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.basic.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Weight:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Weight: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Lifestyle & Diet */}
+          <div className={`flex-1 min-w-[220px] max-w-[280px] bg-gradient-to-br ${themeColors.lifestyle.bg} rounded-lg p-3 shadow-sm border ${themeColors.lifestyle.border}`}>
+            <h4 className={`text-sm font-semibold mb-2 flex items-center ${themeColors.lifestyle.text}`}>
+              <span className="text-lg mr-2">🍽️</span> 
+              <span>LIFESTYLE & DIET</span>
+            </h4>
+            <div className="space-y-2 text-sm">
+              {profileMessage.content.match(/• Activity: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.lifestyle.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Activity:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Activity: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+              {profileMessage.content.match(/• Diet: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.lifestyle.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Diet:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Diet: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+              {profileMessage.content.match(/• Restrictions: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.lifestyle.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Restrictions:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Restrictions: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Health Status */}
+          <div className={`flex-1 min-w-[220px] max-w-[280px] bg-gradient-to-br ${themeColors.health.bg} rounded-lg p-3 shadow-sm border ${themeColors.health.border}`}>
+            <h4 className={`text-sm font-semibold mb-2 flex items-center ${themeColors.health.text}`}>
+              <span className="text-lg mr-2">🩺</span> 
+              <span>HEALTH STATUS</span>
+            </h4>
+            <div className="space-y-2 text-sm">
+              {profileMessage.content.match(/• Concerns: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.health.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Concerns:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Concerns: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+              {profileMessage.content.match(/• Medical: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.health.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Medical:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Medical: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+              {profileMessage.content.match(/• Medications: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.health.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Medications:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Medications: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Current Supplements */}
+          <div className={`flex-1 min-w-[220px] max-w-[280px] bg-gradient-to-br ${themeColors.supplements.bg} rounded-lg p-3 shadow-sm border ${themeColors.supplements.border}`}>
+            <h4 className={`text-sm font-semibold mb-2 flex items-center ${themeColors.supplements.text}`}>
+              <span className="text-lg mr-2">💊</span> 
+              <span>CURRENT SUPPLEMENTS</span>
+            </h4>
+            <div className="space-y-2 text-sm">
+              {profileMessage.content.match(/• Current: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.supplements.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Current:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Current: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+              {profileMessage.content.match(/• Goals: ([^\n]+)/)?.[1] && (
+                <div className="flex items-start">
+                  <span className={`mr-2 ${themeColors.supplements.bullet}`}>•</span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Goals:</span> 
+                    <span className="ml-1 text-gray-800 dark:text-gray-200">{profileMessage.content.match(/• Goals: ([^\n]+)/)[1]}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ChatInterface = ({ 
+  currentChatId: initialChatId, 
+  initialMessages = [], 
+  shouldStartNewChat = false, 
+  onChatCreated = () => {},
+  showQuestionnaire = false,
+  onQuestionnaireComplete = () => {}
+}) => {
+  // Filter out system messages for display, but keep them for API calls
+  const filteredInitialMessages = initialMessages.filter(msg => msg.role !== 'system');
+  
+  const [messages, setMessages] = useState(() => {
+    if (initialMessages.length > 0) {
+      return initialMessages;
+    } else {
+      return [{
+        role: 'assistant',
+        content: initialMessage,
+      }];
+    }
+  });
+  
+  // Add useState hook for questionnaire visibility that's controlled by the prop
+  const [localShowQuestionnaire, setLocalShowQuestionnaire] = useState(showQuestionnaire);
+  
+  // Update local state when props change
+  useEffect(() => {
+    setLocalShowQuestionnaire(showQuestionnaire);
+  }, [showQuestionnaire]);
+  
+  const [currentChatId, setCurrentChatId] = useState(initialChatId);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(() => {
+    // Check if user has seen disclaimer in this session
+    const hasSeenDisclaimer = localStorage.getItem('swallow_hero_seen_disclaimer');
+    return !hasSeenDisclaimer;
+  });
+  const [showWelcome, setShowWelcome] = useState(shouldStartNewChat);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [showQuestionnaire, setShowQuestionnaire] = useState(true);
   const [formData, setFormData] = useState({});
   const messagesEndRef = useRef(null);
   const [messageReactions, setMessageReactions] = useState({});
   const [copiedMessageId, setCopiedMessageId] = useState(null);
+  const [user] = useAuthState(auth);
   
   // Initialize OpenAI client
   const openai = React.useMemo(() => {
@@ -749,8 +1282,10 @@ const ChatInterface = () => {
         top_p: 0.95,
       });
 
-      return completion;
+      // Return just the response content, not the whole completion object
+      return completion.choices[0].message.content;
     } catch (error) {
+      console.error("OpenAI API error:", error);
       if (error.response?.status === 429 && retryCount < MAX_RETRIES) {
         await sleep(RETRY_DELAY * (retryCount + 1));
         return makeOpenAIRequest(messages, retryCount + 1);
@@ -770,70 +1305,103 @@ const ChatInterface = () => {
     }
 
     // Add user message
-    const newMessage = {
-      text: inputMessage,
-      sender: 'user',
-      timestamp: new Date().toISOString(),
+    const userMessage = {
+      role: 'user',
+      content: inputMessage
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    // Create a copy of messages with the new user message
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInputMessage('');
     setIsTyping(true);
 
     try {
-      // Prepare conversation history
-      const conversationHistory = [
-        SYSTEM_MESSAGE,
-        ...messages.map(msg => ({
-          role: msg.sender === 'user' ? 'user' : 'assistant',
-          content: msg.text
-        })),
-        { role: 'user', content: inputMessage }
-      ];
-
-      console.log('Attempting to send request to OpenAI...');
-
-      // Get AI response with retry logic
-      const completion = await makeOpenAIRequest(conversationHistory);
-
-      console.log('Successfully received response from OpenAI');
-
-      if (!completion.choices || !completion.choices[0] || !completion.choices[0].message) {
-        console.error('Invalid response structure:', completion);
-        throw new Error('Invalid response format from OpenAI');
+      // Prepare conversation history for OpenAI
+      // Ensure there's a system message at the beginning
+      let conversationHistory = [...updatedMessages];
+      
+      // Check if there's already a system message
+      if (!conversationHistory.some(msg => msg.role === 'system')) {
+        // Add system message at the beginning
+        conversationHistory = [
+          {
+            role: "system",
+            content: "You are a helpful AI assistant focused on providing supplement recommendations and health advice based on the user's profile. Remember that all advice should be general in nature and users should consult healthcare professionals before making changes to their health regimen."
+          },
+          ...conversationHistory
+        ];
       }
 
-      const aiResponse = {
-        text: completion.choices[0].message.content,
-        sender: 'ai',
-        timestamp: new Date().toISOString(),
+      console.log('Sending request to OpenAI...');
+
+      // Get AI response
+      const aiResponse = await makeOpenAIRequest(conversationHistory);
+      
+      // Create AI message
+      const assistantMessage = {
+        role: 'assistant',
+        content: aiResponse
       };
-
-      setMessages(prev => [...prev, aiResponse]);
-    } catch (error) {
-      console.error('Detailed error from OpenAI:', {
-        error: error,
-        message: error.message,
-        status: error.status,
-        response: error.response,
-        stack: error.stack
-      });
       
-      let errorMessage = "I apologize, but I'm having trouble processing your request.";
+      // Update messages with AI response (but don't include system message in UI)
+      const finalUIMessages = [...updatedMessages, assistantMessage];
+      setMessages(finalUIMessages);
       
-      if (error.response?.status === 429) {
-        errorMessage = "I apologize, but we've reached our current usage limit. Please try again in a few moments.";
-      } else if (error.response) {
-        errorMessage += ` Error: ${error.response.data?.error?.message || error.message || 'Unknown API error'}`;
-      } else if (error.message) {
-        errorMessage += ` Error: ${error.message}`;
+      // If we have a currentChatId, update the chat in Firebase
+      if (currentChatId && user) {
+        console.log('Updating chat in Firebase with ID:', currentChatId);
+        try {
+          // Include the system message in what we store
+          const finalStoredMessages = conversationHistory.some(msg => msg.role === 'system') 
+            ? [...conversationHistory, assistantMessage] 
+            : [
+                {
+                  role: "system",
+                  content: "You are a helpful AI assistant focused on providing supplement recommendations and health advice based on the user's profile. Remember that all advice should be general in nature and users should consult healthcare professionals before making changes to their health regimen."
+                },
+                ...updatedMessages,
+                assistantMessage
+              ];
+          
+          await updateChatSession(currentChatId, finalStoredMessages);
+          console.log('Chat updated successfully');
+        } catch (err) {
+          console.error('Error updating chat:', err);
+        }
       }
-
-      setMessages(prev => [...prev, {
-        text: errorMessage,
-        sender: 'ai',
-        timestamp: new Date().toISOString(),
-      }]);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      
+      // Add error message
+      const errorMessage = {
+        role: 'assistant',
+        content: 'I apologize, but I encountered an issue generating a response. Please try again or contact support if the problem persists.'
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      
+      // If we have a currentChatId, update the chat in Firebase with the error message
+      if (currentChatId && user) {
+        try {
+          // Need to check if we have a system message and include it
+          let allMessages = [...updatedMessages, errorMessage];
+          
+          if (!allMessages.some(msg => msg.role === 'system')) {
+            allMessages = [
+              {
+                role: "system",
+                content: "You are a helpful AI assistant focused on providing supplement recommendations and health advice based on the user's profile. Remember that all advice should be general in nature and users should consult healthcare professionals before making changes to their health regimen."
+              },
+              ...allMessages
+            ];
+          }
+          
+          await updateChatSession(currentChatId, allMessages);
+        } catch (err) {
+          console.error('Error updating chat with error message:', err);
+        }
+      }
     } finally {
       setIsTyping(false);
     }
@@ -844,96 +1412,172 @@ const ChatInterface = () => {
   };
 
   const handleQuestionnaireComplete = async () => {
-    const initialMessage = {
-      text: formatUserProfile(formData),
-      sender: 'user',
-      timestamp: new Date().toISOString(),
-    };
-
-    const welcomeMessage1 = {
-      ...WELCOME_MESSAGES.initial,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages([initialMessage, welcomeMessage1]);
-    setShowQuestionnaire(false);
-    setIsTyping(true);
-
-    await sleep(2000);
-
-    const welcomeMessage2 = {
-      ...WELCOME_MESSAGES.analyzing,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages(prev => [...prev, welcomeMessage2]);
-
+    // Immediately hide questionnaire and show loading
+    setLocalShowQuestionnaire(false);
+    setLoading(true);
+    onQuestionnaireComplete(); // Notify container to update its state immediately
+    console.log("Questionnaire completed with data:", formData);
+    
     try {
-      const conversationHistory = [
-        SYSTEM_MESSAGE,
-        {
-          role: "system",
-          content: ANALYSIS_FORMAT_TEMPLATE
-        },
-        {
-          role: 'user',
-          content: initialMessage.text
-        }
-      ];
-
-      await sleep(2000);
-
-      const completion = await makeOpenAIRequest(conversationHistory);
-
-      if (!completion.choices?.[0]?.message) {
-        throw new Error('Invalid response format from OpenAI');
-      }
-
-      const aiResponse = {
-        text: completion.choices[0].message.content,
-        sender: 'ai',
-        timestamp: new Date().toISOString(),
+      // Create user profile summary from questionnaire data
+      const userProfile = formatUserProfile(formData);
+      console.log("Formatted user profile:", userProfile);
+      
+      // Initial system message that won't be displayed to the user
+      const systemMessage = {
+        role: 'system',
+        content: SYSTEM_MESSAGE.content
       };
-
-      setMessages(prev => [...prev, aiResponse]);
+      
+      // Create chat in Firebase first to have a valid chatId
+      let newChatId;
+      try {
+        console.log("Creating new chat session from questionnaire");
+        newChatId = await createChatSession(
+          user.uid,
+          `Health Consultation`,
+          [systemMessage] // Initially just save the system message
+        );
+        setCurrentChatId(newChatId);
+        
+        // Notify parent component that chat is created to update URL
+        onChatCreated(newChatId);
+        console.log("New chat created with ID:", newChatId);
+        
+      } catch (error) {
+        console.error('Error creating chat:', error);
+        setError('Failed to create chat. Using local mode.');
+      }
+      
+      // 1. First display the health profile summary
+      const profileMessage = {
+        role: 'assistant',
+        content: userProfile
+      };
+      setMessages([profileMessage]);
+      setLoading(false);
+      
+      // 2. After a moment, show welcome message
+      const welcomeMessage = {
+        role: 'assistant',
+        content: WELCOME_MESSAGES.initial.text
+      };
+      
+      // Wait a moment then add welcome message
+      await sleep(500);
+      setMessages(prev => [...prev, welcomeMessage]);
+      
+      // 3. After 2 seconds, show analyzing message
+    await sleep(2000);
+      const analyzingMessage = {
+        role: 'assistant',
+        content: WELCOME_MESSAGES.analyzing.text
+      };
+      setMessages(prev => [...prev, analyzingMessage]);
+      
+      // 4. After 3 more seconds, get AI response
+      await sleep(3000);
+      
+      // Set up the user's profile information for the AI
+      const healthProfilePrompt = formatUserProfile(formData);
+      
+      // Create a system message with user's profile data
+      const enhancedSystemMessage = {
+        ...systemMessage,
+        content: systemMessage.content + "\n\n" + healthProfilePrompt
+      };
+      
+      // API messages include enhanced system message but no user query
+      const apiMessages = [enhancedSystemMessage];
+      
+      try {
+        // Get AI response based only on the system message with profile information
+        const aiResponse = await makeOpenAIRequest(apiMessages);
+        
+        // Add the AI response
+        setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+        
+        // Save all messages to Firebase
+        const messagesForStorage = [
+          systemMessage, 
+          profileMessage, 
+          welcomeMessage,
+          analyzingMessage, 
+          { role: 'assistant', content: aiResponse }
+        ];
+        
+        if (newChatId) {
+          try {
+            await updateChatSession(newChatId, messagesForStorage);
+            console.log("Chat session updated with all messages");
+            // Trigger storage event to update sidebar
+            window.dispatchEvent(new Event('storage'));
+          } catch (error) {
+            console.error('Error updating chat with AI response:', error);
+          }
+        }
+        
     } catch (error) {
       console.error('Error getting AI response:', error);
       
-      const errorMessage = {
-        text: "I apologize, but I'm having trouble processing your information. Please try sending your question again.",
-        sender: 'ai',
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsTyping(false);
+        // Add error message
+        setMessages(prev => [...prev, {
+          role: 'assistant', 
+          content: 'Sorry, I was unable to generate a response. Please try again.',
+          isError: true
+        }]);
+        
+        if (newChatId) {
+          try {
+            await updateChatSession(newChatId, [
+              systemMessage,
+              profileMessage,
+              welcomeMessage,
+              analyzingMessage,
+              { 
+                role: 'assistant', 
+                content: 'Sorry, I was unable to generate a response. Please try again.',
+                isError: true 
+              }
+            ]);
+          } catch (storageError) {
+            console.error('Error updating chat with error message:', storageError);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in questionnaire completion:', error);
+      setError('An error occurred while processing your information.');
+      setLoading(false);
     }
   };
 
   // Add this helper function
   const formatUserProfile = (data) => {
-    return `**Health Profile Summary**
+    if (!data) return '';
 
-**Basic Information**
+    // Add emoji icons to categories
+    const formattedInfo = `**🧑‍💼 BASIC INFORMATION**
 • Age: ${data.age}
 • Sex: ${data.sex}
 • Height: ${data.height}cm
 • Weight: ${data.weight}kg
 
-**Lifestyle & Diet**
-• Activity: ${data.activityLevel}
-• Diet: ${data.dietType}
-${data.dietaryRestrictions?.length ? `• Restrictions: ${data.dietaryRestrictions.join(', ')}` : '• Restrictions: None'}
+**🍽️ LIFESTYLE & DIET**
+• Activity: ${data.activityLevel || 'Not specified'}
+• Diet: ${data.dietType || 'Not specified'}
+• Restrictions: ${data.dietaryRestrictions?.length ? data.dietaryRestrictions.join(', ') : 'None'}
 
-**Health Status**
-• Concerns: ${data.healthConcerns.join(', ')}
-${data.medicalConditions ? `• Medical: ${data.medicalConditions}` : '• Medical: None'}
-${data.medications ? `• Medications: ${data.medications}` : '• Medications: None'}
+**🩺 HEALTH STATUS**
+• Concerns: ${data.healthConcerns?.length ? data.healthConcerns.join(', ') : 'None'}
+• Medical: ${data.medicalConditions?.length ? data.medicalConditions.join(', ') : 'None'}
+• Medications: ${data.medications?.length ? data.medications.join(', ') : 'None'}
 
-**Current Supplements**
-• Current: ${data.currentSupplements || 'None'}
-${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}` : '• Goals: None'}`;
+**💊 CURRENT SUPPLEMENTS**
+• Current: ${data.currentSupplements?.length ? data.currentSupplements.join(', ') : 'None'}
+• Goals: ${data.supplementGoals?.length ? data.supplementGoals.join(', ') : 'None'}`;
+
+    return formattedInfo;
   };
 
   // Update the formatAIMessage function
@@ -997,7 +1641,7 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
       }
 
       // Regular paragraph
-      return <p key={index} className="mb-2 text-gray-800 dark:text-gray-200">{section}</p>;
+      return <p key={index} className="mb-4 text-gray-800 dark:text-gray-200">{styleVitaminNames(section)}</p>;
     });
   };
 
@@ -1026,6 +1670,108 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
 
   // Add this constant at the top of the file
   const MAX_MESSAGE_LENGTH = 500;
+
+  // Save messages to Firebase when they change
+  useEffect(() => {
+    const saveMessages = async () => {
+      if (!currentChatId || !user || messages.length <= 1) return;
+      
+      try {
+        // Ensure we have a system message at the beginning for the OpenAI API
+        let messagesToSave = [...messages];
+        
+        // If there's no system message, add one
+        if (!messagesToSave.some(msg => msg.role === 'system')) {
+          messagesToSave = [
+            {
+              role: 'system',
+              content: 'You are a helpful AI assistant focused on providing supplement recommendations and health advice based on the user\'s profile. Remember that all advice should be general in nature and users should consult healthcare professionals before making changes to their health regimen.'
+            },
+            ...messagesToSave
+          ];
+        }
+        
+        await updateChatSession(currentChatId, messagesToSave);
+      } catch (err) {
+        console.error('Error saving messages:', err);
+      }
+    };
+
+    saveMessages();
+  }, [messages, currentChatId, user]);
+
+  // Update chat title after first user message
+  useEffect(() => {
+    const updateChatTitle = async () => {
+      if (!currentChatId || !user) return;
+      
+      // Find the first user message
+      const firstUserMessage = messages.find(m => m.role === 'user');
+      if (!firstUserMessage) return;
+      
+      // Generate a title from the first user message
+      const title = firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
+      
+      try {
+        await updateChatSession(currentChatId, messages, title);
+      } catch (err) {
+        console.error('Error updating chat title:', err);
+      }
+    };
+
+    updateChatTitle();
+  }, [messages, currentChatId, user]);
+
+  // Update currentChatId when prop changes
+  useEffect(() => {
+    if (initialChatId !== currentChatId) {
+      setCurrentChatId(initialChatId);
+    }
+  }, [initialChatId, currentChatId]);
+
+  const handleDisclaimerAccept = () => {
+    setShowDisclaimer(false);
+    // Store that user has seen the disclaimer in this session
+    localStorage.setItem('swallow_hero_seen_disclaimer', 'true');
+    
+    if (showWelcome) {
+      setShowWelcome(true);
+    }
+  };
+
+  // Get theme context at the component level
+  const { profileTheme, getThemeGradient } = useTheme();
+
+  if (error) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-200">
+        <div className="text-center p-8">
+          <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2 transition-colors duration-200">Error</h3>
+          <p className="text-gray-700 dark:text-gray-300 transition-colors duration-200">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (showDisclaimer) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full p-6 shadow-xl transition-colors duration-200">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 transition-colors duration-200">🚨Important Note</h2>
+          <p className="text-gray-600 dark:text-gray-300 text-lg mb-6 transition-colors duration-200">
+            Our AI provides general recommendations based on available information. 
+            Always consult with a healthcare professional before starting any new supplement regimen.
+          </p>
+          <button 
+            onClick={handleDisclaimerAccept}
+            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg py-3 transition-colors duration-200"
+          >
+            I Understand
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (showWelcome) {
     return (
@@ -1068,7 +1814,6 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
             <button 
               onClick={() => {
                 setShowWelcome(false);
-                setShowDisclaimer(true);
               }}
               className="btn-primary btn-lg"
             >
@@ -1083,38 +1828,7 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
     );
   }
 
-  if (error) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-200">
-        <div className="text-center p-8">
-          <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2 transition-colors duration-200">Error</h3>
-          <p className="text-gray-700 dark:text-gray-300 transition-colors duration-200">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (showDisclaimer) {
-    return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full p-6 shadow-xl transition-colors duration-200">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 transition-colors duration-200">🚨Important Note</h2>
-          <p className="text-gray-600 dark:text-gray-300 text-lg mb-6 transition-colors duration-200">
-            Our AI provides general recommendations based on available information. 
-            Always consult with a healthcare professional before starting any new supplement regimen.
-          </p>
-          <button 
-            onClick={() => setShowDisclaimer(false)}
-            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg py-3 transition-colors duration-200"
-          >
-            I Understand
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (showQuestionnaire) {
+  if (localShowQuestionnaire) {
     const currentStepData = QUESTIONNAIRE_STEPS[currentStep];
     return (
       <div className="fixed inset-0 top-16 flex flex-col bg-transparent">
@@ -1167,74 +1881,61 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
   }
 
   return (
-    <div className="fixed inset-0 top-16 flex flex-col bg-transparent">
-      <div className="flex-1 min-h-0">
+    <div className="w-full h-full flex flex-col bg-transparent">
+      {loading ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">Creating your personalized chat...</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Add horizontal health profile if it exists */}
+          {messages.some(msg => msg.role === 'assistant' && msg.content.includes('BASIC INFORMATION')) && (
+            <HorizontalHealthProfile profileData={messages} />
+          )}
+          
+          <div className="flex-1 min-h-0 w-full">
         <div className="h-full overflow-y-auto bg-transparent">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center max-w-xl px-4 card p-8 shadow-lg bg-white dark:bg-gray-800 transition-colors duration-200">
-                <div className="relative z-2">
-                  <BoldText text="**Welcome to Swallow Hero AI**" />
-                  <div className="space-y-4 text-gray-600 dark:text-gray-300 transition-colors duration-200">
-                    <p>
-                      I'm here to help you with personalized supplement recommendations and answer any questions about:
+                    <h2 className="text-xl font-bold hero-gradient mb-4">
+                      Let's start a new conversation!
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Ask me anything about supplements and health based on your profile.
                     </p>
-                    <ul className="space-y-2 text-left">
-                      <li className="flex items-center">
-                        <svg className="w-5 h-5 text-teal-500 dark:text-teal-400 mr-2 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Vitamin and supplement recommendations
-                      </li>
-                      <li className="flex items-center">
-                        <svg className="w-5 h-5 text-teal-500 dark:text-teal-400 mr-2 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Dosage and timing guidance
-                      </li>
-                      <li className="flex items-center">
-                        <svg className="w-5 h-5 text-teal-500 dark:text-teal-400 mr-2 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Potential interactions and safety
-                      </li>
-                      <li className="flex items-center">
-                        <svg className="w-5 h-5 text-teal-500 dark:text-teal-400 mr-2 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        General nutrition advice
-                      </li>
-                    </ul>
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
-            <div className="h-full">
+                <div className="h-full w-full">
               <div className="max-w-3xl mx-auto px-4 py-4 space-y-6">
-                {messages.map((message, index) => (
+                    {messages
+                      .filter(msg => msg.role !== 'system')
+                      // Filter out the health profile summary from the chat messages since it's shown at the top
+                      .filter(msg => !(msg.role === 'assistant' && msg.content.includes('BASIC INFORMATION')))
+                      .map((message, index) => (
                   <div
                     key={index}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className="max-w-[85%] sm:max-w-[75%]">
-                      <div
-                        className={`relative group rounded-2xl px-4 py-3 ${
-                          message.sender === 'user'
-                            ? 'rounded-tr-none bg-gradient-to-r from-teal-500/65 to-sky-500/65 dark:from-teal-600/75 dark:to-sky-600/75 text-white shadow-sm transition-colors duration-200'
-                            : 'card text-gray-800 dark:text-gray-200 rounded-tl-none bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-900/30 transition-colors duration-200'
-                        }`}
-                        style={message.sender === 'user' ? {
-                          textShadow: '0 1px 1px rgba(0, 0, 0, 0.1)'
-                        } : {}}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className="relative z-2">
-                          {message.text.startsWith('**Health Profile Summary**') || message.sender === 'ai' ? (
-                            formatMessageContent(message.text)
-                          ) : (
-                            <pre className="font-sans whitespace-pre-wrap text-white">{message.text}</pre>
-                          )}
-                        </div>
+                        <div className={`max-w-[85%] sm:max-w-[75%] ${message.isLoading ? 'animate-pulse' : ''}`}>
+                          <div
+                            className={`relative group ${
+                              message.role === 'user'
+                                ? 'rounded-tr-none rounded-2xl bg-gradient-to-r from-teal-500/70 to-sky-500/70 dark:from-teal-600/80 dark:to-sky-600/80 text-white shadow-sm px-4 py-3'
+                                : 'rounded-tl-none rounded-2xl bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-900/30 px-4 py-3 pb-4'
+                            }`}
+                          >
+                            {message.role === 'assistant' ? (
+                              <div className="space-y-2">
+                                {formatMessageContent(message.content, profileTheme, getThemeGradient)}
+                              </div>
+                            ) : (
+                              <p className="text-white">{message.content}</p>
+                            )}
                       </div>
                     </div>
                   </div>
@@ -1261,7 +1962,7 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
       </div>
 
       {/* Input area */}
-      <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-md transition-colors duration-200">
+          <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-md transition-colors duration-200 w-full">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex items-center space-x-4">
           <input
             type="text"
@@ -1282,6 +1983,8 @@ ${data.supplementGoals?.length ? `• Goals: ${data.supplementGoals.join(', ')}`
           </button>
         </form>
       </div>
+        </>
+      )}
     </div>
   );
 };

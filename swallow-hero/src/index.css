@@ -53,6 +53,12 @@ h1, h2, h3, h4, h5, h6 {
   @apply text-gray-900 dark:text-white transition-colors duration-200;
 }
 
+/* Ensure theme gradient headings aren't overridden */
+h3.text-transparent.bg-clip-text.bg-gradient-to-r {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
 /* Ensure links remain visible but distinct */
 a:not(.btn-primary):not(.nav-link) {
   @apply text-sky-700 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300;

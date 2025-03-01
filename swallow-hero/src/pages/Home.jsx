@@ -245,7 +245,7 @@ const Home = () => {
                   }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Try AI Chat
+                  Chat FREE Now
                   <motion.svg 
                     className="w-5 h-5 icon-right" 
                     fill="none" 

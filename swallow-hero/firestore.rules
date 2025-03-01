@@ -80,5 +80,20 @@ service cloud.firestore {
       allow write: if isUserOwned(userId) &&
         ((request.time - resource.data.lastAction) > duration.value(1, 's'));
     }
+
+    // Chat history collection - Modified rules for easier testing
+    match /chatHistory/{chatId} {
+      // Allow authenticated users to read their own chats
+      allow read: if isAuthenticated() && 
+                    (resource == null || resource.data.userId == request.auth.uid);
+      
+      // Allow authenticated users to create new chats
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Allow authenticated users to update and delete their own chats
+      allow update, delete: if isAuthenticated() && 
+                             resource.data.userId == request.auth.uid;
+    }
   }
 }

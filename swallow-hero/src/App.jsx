@@ -4,6 +4,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './config/firebase';
 import Navigation from './components/Navigation';
 import ChatInterface from './components/ChatInterface';
+import ChatContainer from './components/ChatContainer';
 import FAQPage from './pages/FAQPage';
 import Auth from './components/Auth';
 import Loading from './components/Loading';
@@ -188,7 +189,12 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/chat" element={
               <ProfileRequiredRoute>
-                <ChatInterface />
+                <ChatContainer />
+              </ProfileRequiredRoute>
+            } />
+            <Route path="/chat/:chatId" element={
+              <ProfileRequiredRoute>
+                <ChatContainer />
               </ProfileRequiredRoute>
             } />
             <Route path="/faq" element={<FAQPage />} />
